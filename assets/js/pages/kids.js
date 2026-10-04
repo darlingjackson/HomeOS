@@ -1662,12 +1662,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             };
             eyes.forEach(setOpen);
             const blink = () => {
-                eyes.forEach((eye, index) => {
-                    window.setTimeout(() => {
-                        setClosed(eye);
-                        window.setTimeout(() => setOpen(eye), 135);
-                    }, index * 85);
-                });
+                eyes.forEach(setClosed);
+
+                window.setTimeout(() => {
+                    eyes.forEach(setOpen);
+                }, 135);
             };
             // First visible blink shortly after the page appears.
             window.setTimeout(blink, 900);
