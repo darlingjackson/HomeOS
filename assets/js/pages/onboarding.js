@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         ["household", "Home", "Name this home",
             "Set the shared household name and home type."],
         ["people", "People", "Who lives here?",
-            "Add the people HomeOS may organize responsibilities for. Kids use an age so HomeOS can choose the right mission mode and create missions automatically."],
+            "Add the people HomeOS may organize responsibilities for. Kids use a birthday so HomeOS can calculate age and update their mission mode automatically."],
         ["levels", "Layout", "Build your home layout",
             "Add the floors or sections, then the rooms and spaces inside them."],
         ["zones", "Cleaning", "Create cleaning zones",
@@ -237,6 +237,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         session: null,
         stepIndex: 0,
         completedSteps: [],
+        committedHouseholdId: null,
         draft: {
             rebuildExistingHome: false,
             household: {
@@ -325,7 +326,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                     homeType: draft?.household?.homeType || "",
                     tagline: draft?.household?.tagline || ""
                 },
-                people: Array.isArray(draft?.people) ? draft.people : [],
+                people: Array.isArray(draft?.people)
+                    ? draft.people.map(person => ({
+                        ...person,
+                        birthDate:
+                            window.HomeOS?.services?.kidAge?.normalizeDateKey?.(
+                                person?.birthDate || person?.birth_date
+                            ) || ""
+                    }))
+                    : [],
                 levels: Array.isArray(draft?.levels) ? draft.levels : [],
                 zones: Array.isArray(draft?.zones) ? draft.zones : [],
                 suppressedLevelZoneIds: Array.isArray(draft?.suppressedLevelZoneIds)
@@ -584,9 +593,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                             <div class="ob-collection-card-header">
                                 <div>
                                     <h4>${this.escape(person.name)}</h4>
-                                    <p>${this.escape(["child", "teen", "dependent"].includes(person.memberType) && person.age
-                ? this.childAgeLine(person.age)
-                : this.pretty(person.memberType))}</p>
+                                    <p>${this.escape(
+                                        ["child", "teen", "dependent"].includes(person.memberType)
+                                            ? this.childBirthdayLine(person.birthDate)
+                                            : this.pretty(person.memberType)
+                                    )}</p>
                                 </div>
 
                                 <button
@@ -618,9 +629,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </select>
 
                     <label class="ob-person-age" id="newPersonAgeWrap" hidden>
-                        <span>Age</span>
-                        <input id="newPersonAge" type="number" min="1" max="18" step="1" inputmode="numeric" placeholder="6">
-                        <small>HomeOS creates the matching Ages 1–4, 5–10 or 11–18 mission pack automatically.</small>
+                        <span>Birthday</span>
+                        <input id="newPersonBirthDate" type="date">
+                        <small>HomeOS calculates age automatically and updates the mission pack as the child grows.</small>
                     </label>
 
                     <button
@@ -633,52 +644,93 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </div>
             `;
         },
-        childAgeLine(ageValue) {
+        childBirthdayLine(value) {
             const ageService = window.HomeOS?.services?.kidAge;
-            const age = ageService?.normalizeAge?.(ageValue);
-            if (age === null || age === undefined)
-                return "Child · age needed";
+            const birthDate = ageService?.normalizeDateKey?.(value) || "";
+            const age = birthDate
+                ? ageService?.ageFromBirthDate?.(birthDate)
+                : null;
+
+            if (!birthDate || age === null || age === undefined) {
+                return "Child · birthday needed";
+            }
+
             const band = ageService.bandForAge(age);
-            return `Child · Age ${age} · ${ageService.bandLabel(band)}`;
+            const [year, month, day] = birthDate.split("-").map(Number);
+            const date = new Date(year, month - 1, day, 12, 0, 0, 0);
+            const label = Number.isNaN(date.getTime())
+                ? birthDate
+                : date.toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric"
+                });
+
+            return `Child · ${label} · Age ${age} · ${ageService.bandLabel(band)}`;
         },
         syncPersonAgeField() {
             const wrap = document.getElementById("newPersonAgeWrap");
-            const input = document.getElementById("newPersonAge");
+            const input = document.getElementById("newPersonBirthDate");
             const isChild = this.value("newPersonType") === "child";
-            if (wrap)
+
+            if (wrap) {
                 wrap.hidden = !isChild;
+            }
+
             if (input) {
                 input.disabled = !isChild;
                 input.required = isChild;
-                if (!isChild)
+
+                if (!isChild) {
                     input.value = "";
+                }
             }
         },
         addPerson() {
             const name = this.value("newPersonName").trim();
             const memberType = this.value("newPersonType") || "household_member";
-            const age = memberType === "child"
-                ? this.value("newPersonAge").trim()
+            const birthDate = memberType === "child"
+                ? this.value("newPersonBirthDate").trim()
                 : "";
-            if (!name)
+
+            if (!name) {
                 return;
+            }
+
+            let age = null;
+
             if (memberType === "child") {
                 const ageService = window.HomeOS?.services?.kidAge;
-                const safeAge = ageService?.normalizeAge?.(age);
-                if (safeAge === null || safeAge === undefined) {
-                    this.alert("Enter the child's age from 1 to 18 so HomeOS can create the correct Kids Mode missions.");
+                const safeBirthDate = ageService?.normalizeDateKey?.(birthDate) || "";
+                age = safeBirthDate
+                    ? ageService?.ageFromBirthDate?.(safeBirthDate)
+                    : null;
+
+                if (
+                    !safeBirthDate ||
+                    age === null ||
+                    age === undefined ||
+                    age < 1 ||
+                    age > 18
+                ) {
+                    this.alert(
+                        "Enter the child's birthday. Kids Mode currently supports ages 1 through 18."
+                    );
                     return;
                 }
             }
+
             this.draft.people.push({
                 id: uid("person"),
                 name,
                 memberType,
-                age: age ? Number(age) : null,
+                birthDate: birthDate || "",
+                age,
                 relationship: "",
                 assignable: true,
                 sortOrder: this.draft.people.length + 1
             });
+
             this.renderStep();
         },
         // --- Levels + Areas ---
@@ -1934,80 +1986,135 @@ document.addEventListener("DOMContentLoaded", async () => {
         },
         async next() {
             let saved = false;
+
             try {
                 this.validate();
                 this.clearAlert();
+
                 const key = this.step().key;
+
                 if (key === "ready") {
                     await this.finish();
                     saved = true;
                     return;
                 }
+
                 this.busy(true, "SAVING");
-                if (key === "household" &&
-                    !this.session.household?.id) {
+
+                if (key === "household" && !this.session.household?.id) {
                     const { error } = await service.createHousehold({
                         name: this.draft.household.name,
                         homeType: this.draft.household.homeType,
                         tagline: this.draft.household.tagline
                     });
-                    if (error)
+
+                    if (error) {
                         throw error;
-                    this.session =
-                        await window.HomeOS.session.refresh();
+                    }
+
+                    this.session = await window.HomeOS.session.refresh();
                 }
-                this.markComplete(key);
+
                 const nextStep = STEPS[this.stepIndex + 1];
+                const completedSteps = this.completedSteps.includes(key)
+                    ? [...this.completedSteps]
+                    : [...this.completedSteps, key];
+
                 const { error } = await service.saveDraft({
                     currentStep: nextStep.key,
-                    completedSteps: this.completedSteps,
+                    completedSteps,
                     draft: this.draft
                 });
-                if (error)
+
+                if (error) {
                     throw error;
+                }
+
+                this.completedSteps = completedSteps;
                 this.stepIndex += 1;
                 this.render();
                 saved = true;
-            }
-            catch (error) {
+            } catch (error) {
                 console.error(error);
-                this.alert(error.message ||
-                    "HomeOS could not save this step.");
-            }
-            finally {
-                this.busy(false, saved
-                    ? "Saved"
-                    : "Ready");
+                this.alert(
+                    error.message || "HomeOS could not save this step."
+                );
+            } finally {
+                this.busy(false, saved ? "Saved" : "Ready");
             }
         },
         async back() {
-            if (this.stepIndex <= 0)
+            if (this.stepIndex <= 0) {
                 return;
+            }
+
             if (this.step().key === "zones") {
                 this.syncZoneNames();
             }
-            this.stepIndex -= 1;
-            this.render();
+
+            const targetIndex = this.stepIndex - 1;
+            const targetStep = STEPS[targetIndex];
+
             if (this.session.household?.id) {
-                await service.saveDraft({
-                    currentStep: this.step().key,
+                this.busy(true, "SAVING");
+
+                const { error } = await service.saveDraft({
+                    currentStep: targetStep.key,
                     completedSteps: this.completedSteps,
                     draft: this.draft
                 });
+
+                if (error) {
+                    this.busy(false, "Ready");
+                    this.alert(
+                        error.message || "HomeOS could not save this step."
+                    );
+                    return;
+                }
             }
+
+            this.stepIndex = targetIndex;
+            this.render();
+            this.busy(false, "Saved");
         },
         async jump(index) {
-            if (index < 0 || index >= STEPS.length)
+            if (index < 0 || index >= STEPS.length) {
                 return;
-            const allowed = index <= this.stepIndex ||
+            }
+
+            const allowed =
+                index <= this.stepIndex ||
                 this.completedSteps.includes(STEPS[index].key);
-            if (!allowed)
+
+            if (!allowed || index === this.stepIndex) {
                 return;
+            }
+
             if (this.step().key === "zones") {
                 this.syncZoneNames();
             }
+
+            if (this.session.household?.id) {
+                this.busy(true, "SAVING");
+
+                const { error } = await service.saveDraft({
+                    currentStep: STEPS[index].key,
+                    completedSteps: this.completedSteps,
+                    draft: this.draft
+                });
+
+                if (error) {
+                    this.busy(false, "Ready");
+                    this.alert(
+                        error.message || "HomeOS could not save setup progress."
+                    );
+                    return;
+                }
+            }
+
             this.stepIndex = index;
             this.render();
+            this.busy(false, "Saved");
         },
         markComplete(key) {
             if (!this.completedSteps.includes(key)) {
@@ -2017,8 +2124,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         async persistKidAgeSetup(householdId) {
             const ageService = window.HomeOS?.services?.kidAge;
             const supabase = window.HomeOS?.supabase;
-            const draftKids = (this.draft.people || []).filter(person => ["child", "teen", "dependent"].includes(person.memberType) &&
-                window.HomeOS?.services?.kidAge?.normalizeAge?.(person.age) !== null);
+            const draftKids = (this.draft.people || []).filter(person =>
+                ["child", "teen", "dependent"].includes(person.memberType) &&
+                Boolean(
+                    window.HomeOS?.services?.kidAge?.normalizeDateKey?.(
+                        person.birthDate || person.birth_date
+                    )
+                )
+            );
             if (!ageService?.configureChild || !supabase || !householdId || !draftKids.length)
                 return;
             const { data, error } = await supabase
@@ -2036,13 +2149,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                     String(person.display_name || "").trim().toLowerCase() === String(draftKid.name || "").trim().toLowerCase());
                 const liveKid = candidates.find(person => Number(person.sort_order) === Number(draftKid.sortOrder)) || candidates[0];
                 if (!liveKid) {
-                    console.warn("[HomeOS] Could not match onboarding child for age setup:", draftKid.name);
-                    continue;
+                    throw new Error(
+                        `HomeOS could not finish Kids Mode setup for ${draftKid.name}.`
+                    );
                 }
                 used.add(liveKid.id);
                 const result = await ageService.configureChild({
                     personId: liveKid.id,
-                    age: draftKid.age,
+                    birthDate:
+                        ageService.normalizeDateKey(
+                            draftKid.birthDate || draftKid.birth_date
+                        ),
                     seedIfNeeded: true
                 });
                 if (result.error)
@@ -2050,32 +2167,46 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         },
         async finish() {
-            if (!this.draft.household.name ||
+            if (
+                !this.draft.household.name ||
                 !this.draft.levels.length ||
-                !this.allRooms().length) {
-                throw new Error("Household identity, one level, and one area are required.");
+                !this.allRooms().length
+            ) {
+                throw new Error(
+                    "Household identity, one level, and one area are required."
+                );
             }
+
             this.busy(true, "BUILDING HOMEOS");
             this.syncLaundryAreasToProfile();
-            const draftToCommit = {
-                ...this.draft,
-                rebuildExistingHome: false
-            };
-            const { householdId, error } = await service.complete(draftToCommit);
-            if (error)
-                throw error;
-            try {
-                await this.persistLaundrySetup(householdId || this.session.household?.id);
+
+            if (!this.committedHouseholdId) {
+                const draftToCommit = {
+                    ...this.draft,
+                    rebuildExistingHome: false
+                };
+
+                const { householdId, error } = await service.complete(draftToCommit);
+
+                if (error) {
+                    throw error;
+                }
+
+                this.committedHouseholdId =
+                    householdId ||
+                    this.session.household?.id ||
+                    null;
             }
-            catch (laundryError) {
-                console.warn("HomeOS built the home, but the laundry profile could not be re-synced.", laundryError);
+
+            if (!this.committedHouseholdId) {
+                throw new Error(
+                    "HomeOS built the setup but could not identify the saved household."
+                );
             }
-            try {
-                await this.persistKidAgeSetup(householdId || this.session.household?.id);
-            }
-            catch (kidError) {
-                console.warn("HomeOS built the home, but a child's age / automatic missions could not be synchronized.", kidError);
-            }
+
+            await this.persistLaundrySetup(this.committedHouseholdId);
+            await this.persistKidAgeSetup(this.committedHouseholdId);
+
             await window.HomeOS.session.refresh();
             this.redirect(window.HomeOS.config.routes.home);
         },
@@ -2098,8 +2229,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             for (const area of this.draft.laundry) {
                 const live = liveAreas.find(item => String(item.name || "").trim().toLowerCase() ===
                     String(area.name || "").trim().toLowerCase()) || liveAreas.find(item => Number(item.sort_order) === Number(area.sortOrder));
-                if (!live)
-                    continue;
+                if (!live) {
+                    throw new Error(
+                        `HomeOS could not finish Laundry setup for ${area.name || "this laundry area"}.`
+                    );
+                }
                 const result = await homeSetup.upsertLaundryArea({
                     householdId,
                     id: live.id,
@@ -2122,7 +2256,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         },
         // --- Action Router ---
-        handleAction(button) {
+        async handleAction(button) {
             const action = button.dataset.action;
             const id = button.dataset.id;
             if (action === "add-person") {
@@ -2270,7 +2404,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             }
             if (action === "cancel-home-rebuild") {
-                this.cancelHomeRebuild();
+                await this.cancelHomeRebuild();
             }
         },
         async cancelHomeRebuild() {
@@ -2396,6 +2530,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 next.disabled = isBusy;
             if (back)
                 back.disabled = isBusy;
+
+            document
+                .querySelectorAll(
+                    '[data-step-index], [data-action="cancel-home-rebuild"]'
+                )
+                .forEach(control => {
+                    control.disabled = isBusy;
+                });
+
             this.text("onboardingSaveState", label);
         },
         redirect(file) {
@@ -2416,35 +2559,49 @@ document.addEventListener("DOMContentLoaded", async () => {
         bindEvents() {
             document
                 .getElementById("onboardingNext")
-                ?.addEventListener("click", () => this.next());
+                ?.addEventListener("click", async () => {
+                    await this.next();
+                });
+
             document
                 .getElementById("onboardingBack")
-                ?.addEventListener("click", () => this.back());
+                ?.addEventListener("click", async () => {
+                    await this.back();
+                });
+
             document
                 .getElementById("onboardingProgress")
-                ?.addEventListener("click", event => {
-                const button = event.target.closest("[data-step-index]");
-                if (button && !button.disabled) {
-                    this.jump(Number(button.dataset.stepIndex));
-                }
-            });
+                ?.addEventListener("click", async event => {
+                    const button = event.target.closest("[data-step-index]");
+
+                    if (button && !button.disabled) {
+                        await this.jump(Number(button.dataset.stepIndex));
+                    }
+                });
+
             document
                 .querySelector(".onboarding-workspace")
-                ?.addEventListener("click", event => {
-                const button = event.target.closest('[data-action="cancel-home-rebuild"]');
-                if (button) {
-                    this.handleAction(button);
-                }
-            });
+                ?.addEventListener("click", async event => {
+                    const button = event.target.closest(
+                        '[data-action="cancel-home-rebuild"]'
+                    );
+
+                    if (button) {
+                        await this.handleAction(button);
+                    }
+                });
+
             const stepRoot = document
                 .getElementById("onboardingStep");
+
             stepRoot
-                ?.addEventListener("click", event => {
-                const button = event.target.closest("[data-action]");
-                if (button) {
-                    this.handleAction(button);
-                }
-            });
+                ?.addEventListener("click", async event => {
+                    const button = event.target.closest("[data-action]");
+
+                    if (button) {
+                        await this.handleAction(button);
+                    }
+                });
             stepRoot
                 ?.addEventListener("change", event => {
                 if (event.target.matches("#newPersonType")) {

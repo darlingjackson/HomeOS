@@ -628,21 +628,49 @@ document.addEventListener("DOMContentLoaded", async () => {
             const valid = this.validHexColor(color);
             if (!personId || !valid)
                 return;
+
             const person = this.people.find(item => String(item.id) === String(personId));
             if (!person)
                 return;
+
+            const previousColor = this.calendarPersonColor(person);
+            const inputs = document.querySelectorAll(
+                `[data-calendar-person-color="${CSS.escape(String(personId))}"]`
+            );
+
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
+
+            const result = await service.savePersonCalendarColor?.(
+                this.householdId(),
+                personId,
+                valid
+            );
+
+            inputs.forEach(input => {
+                input.disabled = false;
+            });
+
+            if (result?.error) {
+                console.error(result.error);
+
+                inputs.forEach(input => {
+                    input.value = previousColor;
+                });
+
+                this.notify(
+                    result.error.message || "HOME OS could not save that calendar color.",
+                    "warning"
+                );
+                return;
+            }
+
             person.color = valid;
             this.renderHouseholdCommand();
             this.renderBoard();
             this.renderAgenda();
             this.renderUpcoming();
-            const result = await service.savePersonCalendarColor?.(this.householdId(), personId, valid);
-            if (result?.error) {
-                console.error(result.error);
-                this.notify(result.error.message || "HOME OS could not save that calendar color.", "warning");
-                await this.load();
-                return;
-            }
             this.notify(`${person.display_name}'s calendar color was updated.`, "success");
         },
         renderHouseholdCommand() {
@@ -1217,6 +1245,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 this.notify("The end time needs to be after the start time.", "warning");
                 return;
             }
+
+            const recurrenceRule = this.valueOf("calendarEventRepeat") || null;
+            const recurrenceEndDate = this.valueOf("calendarEventRepeatEnd") || null;
+
+            if (recurrenceRule && recurrenceEndDate && recurrenceEndDate < date) {
+                this.notify("Repeat until cannot be before the event date.", "warning");
+                return;
+            }
+
             const submit = document.querySelector("#calendarEventForm button[type='submit']");
             if (submit)
                 submit.disabled = true;
@@ -1239,8 +1276,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 startsAt: startsAt.toISOString(),
                 endsAt: endsAt.toISOString(),
                 allDay,
-                recurrenceRule: this.valueOf("calendarEventRepeat") || null,
-                recurrenceEndDate: this.valueOf("calendarEventRepeatEnd") || null,
+                recurrenceRule,
+                recurrenceEndDate,
                 familyMemberId,
                 location: this.valueOf("calendarEventLocation"),
                 notes: this.valueOf("calendarEventNotes")

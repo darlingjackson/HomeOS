@@ -13,7 +13,7 @@
     window.HomeOS.cleaningModules.events = {
         // --- Events ---
         bind() {
-            document.addEventListener("click", event => {
+            document.addEventListener("click", async event => {
                 if (event.target
                     .closest("#heroRoomMode")) {
                     this.setMode("room");
@@ -115,20 +115,33 @@
                 const level = event.target
                     .closest("[data-cleaning-level]");
                 if (level) {
-                    this.startSession(level.dataset
-                        .cleaningLevel);
+                    const cleaningLevel = level.dataset.cleaningLevel;
+                    await this.runCleaningMutation(
+                        `start:${cleaningLevel}`,
+                        [level],
+                        () => this.startSession(cleaningLevel)
+                    );
                     return;
                 }
-                if (event.target
-                    .closest("#addManualCleaningTask")) {
-                    this.addTask();
+                const addTaskButton = event.target
+                    .closest("#addManualCleaningTask");
+                if (addTaskButton) {
+                    await this.runCleaningMutation(
+                        "add-task",
+                        [addTaskButton, document.getElementById("manualCleaningTask")],
+                        () => this.addTask()
+                    );
                     return;
                 }
                 const remove = event.target
                     .closest("[data-remove-cleaning-task]");
                 if (remove) {
-                    this.removeTask(remove.dataset
-                        .removeCleaningTask);
+                    const taskId = remove.dataset.removeCleaningTask;
+                    await this.runCleaningMutation(
+                        `remove-task:${taskId}`,
+                        [remove],
+                        () => this.removeTask(taskId)
+                    );
                     return;
                 }
                 if (event.target
@@ -136,29 +149,66 @@
                     this.changeCleaningLevel();
                     return;
                 }
-                if (event.target
-                    .closest("#pauseCleaningButton")) {
-                    this.pause();
+                const pauseButton = event.target
+                    .closest("#pauseCleaningButton");
+                if (pauseButton) {
+                    await this.runCleaningMutation(
+                        "pause-session",
+                        [pauseButton],
+                        () => this.pause()
+                    );
                     return;
                 }
-                if (event.target
-                    .closest("#completeCleaningButton")) {
-                    this.complete();
+                const completeButton = event.target
+                    .closest("#completeCleaningButton");
+                if (completeButton) {
+                    await this.runCleaningMutation(
+                        "complete-session",
+                        [completeButton],
+                        () => this.complete()
+                    );
                     return;
                 }
-                if (event.target
-                    .closest("#resumeCleaningButton")) {
-                    this.resume();
+                const resumeButton = event.target
+                    .closest("#resumeCleaningButton");
+                if (resumeButton) {
+                    await this.runCleaningMutation(
+                        "resume-session",
+                        [resumeButton],
+                        () => this.resume()
+                    );
                     return;
                 }
                 const completeCare = event.target.closest("[data-complete-home-care]");
                 if (completeCare) {
-                    this.completeRecurringCare(completeCare.dataset.completeHomeCare);
+                    const taskId = completeCare.dataset.completeHomeCare;
+                    const controls = [
+                        ...document.querySelectorAll(
+                            `[data-complete-home-care="${CSS.escape(taskId)}"]`
+                        )
+                    ];
+
+                    await this.runCleaningMutation(
+                        `complete-care:${taskId}`,
+                        controls,
+                        () => this.completeRecurringCare(taskId)
+                    );
                     return;
                 }
                 const removeCare = event.target.closest("[data-remove-home-care]");
                 if (removeCare) {
-                    this.removeRecurringCare(removeCare.dataset.removeHomeCare);
+                    const taskId = removeCare.dataset.removeHomeCare;
+                    const controls = [
+                        ...document.querySelectorAll(
+                            `[data-remove-home-care="${CSS.escape(taskId)}"]`
+                        )
+                    ];
+
+                    await this.runCleaningMutation(
+                        `remove-care:${taskId}`,
+                        controls,
+                        () => this.removeRecurringCare(taskId)
+                    );
                     return;
                 }
                 const guide = event.target
@@ -168,7 +218,11 @@
                         .guideAction;
                     if (action ===
                         "resume") {
-                        this.resume();
+                        await this.runCleaningMutation(
+                            "resume-session",
+                            [guide],
+                            () => this.resume()
+                        );
                         return;
                     }
                     if (action ===
@@ -199,7 +253,7 @@
                     }
                 }
             });
-            document.addEventListener("change", event => {
+            document.addEventListener("change", async event => {
                 const areaSelect = event.target.closest("#areaCleanSelect");
                 if (areaSelect) {
                     const room = this.roomById(areaSelect.value);
@@ -240,20 +294,70 @@
                 const task = event.target
                     .closest("[data-cleaning-task]");
                 if (task) {
-                    this.toggleTask(task.dataset
-                        .cleaningTask, task.checked);
+                    const taskId = task.dataset.cleaningTask;
+                    await this.runCleaningMutation(
+                        `toggle-task:${taskId}`,
+                        [task],
+                        () => this.toggleTask(taskId, task.checked)
+                    );
                 }
             });
             document
                 .getElementById("manualCleaningTask")
-                ?.addEventListener("keydown", event => {
+                ?.addEventListener("keydown", async event => {
                 if (event.key ===
                     "Enter") {
                     event.preventDefault();
-                    this.addTask();
+                    await this.runCleaningMutation(
+                        "add-task",
+                        [
+                            document.getElementById("addManualCleaningTask"),
+                            document.getElementById("manualCleaningTask")
+                        ],
+                        () => this.addTask()
+                    );
                 }
             });
         },
+
+        async runCleaningMutation(key, controls, action) {
+            this.pendingCleaningMutations =
+                this.pendingCleaningMutations || new Set();
+
+            if (this.pendingCleaningMutations.has(key)) {
+                return;
+            }
+
+            this.pendingCleaningMutations.add(key);
+
+            const elements = (controls || [])
+                .filter(Boolean);
+
+            elements.forEach(element => {
+                element.disabled = true;
+            });
+
+            try {
+                await action();
+            }
+            catch (error) {
+                console.error("[HomeOS] Cleaning action failed.", error);
+                this.toast(
+                    error?.message ||
+                    "HomeOS could not save that Cleaning change."
+                );
+            }
+            finally {
+                this.pendingCleaningMutations.delete(key);
+
+                elements.forEach(element => {
+                    if (element.isConnected) {
+                        element.disabled = false;
+                    }
+                });
+            }
+        },
+
         setMode(mode) {
             if (![
                 "room",

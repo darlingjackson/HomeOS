@@ -16,6 +16,98 @@
         }
         return window.HomeOS.supabase;
     }
+    function validTime(value, fallback) {
+        const normalized = String(value || "").trim();
+        const match = /^(\d{2}):(\d{2})$/.exec(normalized);
+        if (!match)
+            return fallback;
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+        return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59
+            ? normalized
+            : fallback;
+    }
+    function normalizeSchedule(settings) {
+        const rhythm = settings?.dailyRhythm && typeof settings.dailyRhythm === "object"
+            ? settings.dailyRhythm
+            : {};
+        const schedule = rhythm.schedule && typeof rhythm.schedule === "object"
+            ? rhythm.schedule
+            : {};
+        return {
+            wakeTime: validTime(schedule.wakeTime, "08:00"),
+            bedTime: validTime(schedule.bedTime, "22:00")
+        };
+    }
+    async function getDaySchedule(householdId) {
+        const { data, error } = await client()
+            .from("household_settings")
+            .select("settings")
+            .eq("household_id", householdId)
+            .maybeSingle();
+        return {
+            data: normalizeSchedule(data?.settings || {}),
+            error
+        };
+    }
+    async function saveDaySchedule(householdId, { wakeTime, bedTime }) {
+        const wake = validTime(wakeTime, "");
+        const bed = validTime(bedTime, "");
+        if (!wake || !bed) {
+            return {
+                data: null,
+                error: new Error("Choose a valid wake-up time and bedtime.")
+            };
+        }
+        if (wake === bed) {
+            return {
+                data: null,
+                error: new Error("Wake-up time and bedtime need to be different.")
+            };
+        }
+
+        const current = await client()
+            .from("household_settings")
+            .select("settings")
+            .eq("household_id", householdId)
+            .maybeSingle();
+
+        if (current.error) {
+            return { data: null, error: current.error };
+        }
+
+        const settings = {
+            ...(current.data?.settings || {})
+        };
+        const dailyRhythm = settings.dailyRhythm && typeof settings.dailyRhythm === "object"
+            ? settings.dailyRhythm
+            : {};
+        settings.dailyRhythm = {
+            ...dailyRhythm,
+            schedule: {
+                wakeTime: wake,
+                bedTime: bed
+            }
+        };
+
+        const query = current.data
+            ? client()
+                .from("household_settings")
+                .update({ settings })
+                .eq("household_id", householdId)
+            : client()
+                .from("household_settings")
+                .insert({ household_id: householdId, settings });
+
+        const { data, error } = await query
+            .select("settings")
+            .single();
+
+        return {
+            data: error ? null : normalizeSchedule(data?.settings || settings),
+            error
+        };
+    }
     function localDateKey(date = new Date()) {
         return [
             date.getFullYear(),
@@ -364,7 +456,7 @@
     }
     async function load(householdId) {
         const today = localDateKey();
-        const [bootstrap, levels, rooms, taskResult, people, shopping, laundry] = await Promise.all([
+        const [bootstrap, levels, rooms, taskResult, people, shopping, laundry, schedule] = await Promise.all([
             ensureDailyRhythm(),
             tableList("home_levels", householdId),
             tableList("rooms", householdId),
@@ -374,9 +466,10 @@
             }),
             tasks().getAssignablePeople(householdId),
             getShopping(householdId),
-            getLaundry(householdId)
+            getLaundry(householdId),
+            getDaySchedule(householdId)
         ]);
-        const error = [bootstrap, levels, rooms, taskResult, people, shopping, laundry]
+        const error = [bootstrap, levels, rooms, taskResult, people, shopping, laundry, schedule]
             .find(result => result.error)?.error || null;
         if (error)
             return { data: null, error };
@@ -436,7 +529,8 @@
                 people: people.data,
                 tasks: runtimeTasks,
                 shopping: shopping.data,
-                laundry: laundry.data
+                laundry: laundry.data,
+                schedule: schedule.data
             },
             error: null
         };
@@ -448,6 +542,8 @@
         addShoppingItem,
         setShoppingComplete,
         removeShoppingItem,
+        getDaySchedule,
+        saveDaySchedule,
         startLaundryLoad,
         advanceLaundryLoad,
         createQuickDailyTask,

@@ -12,7 +12,7 @@
     window.HomeOS.accountPageModules.events = {
         // --- Events ---
         bindEvents() {
-            document.addEventListener("click", event => {
+            document.addEventListener("click", async event => {
                 const tab = event.target.closest("[data-account-tab]");
                 if (tab)
                     return this.openTab(tab.dataset.accountTab);
@@ -30,7 +30,10 @@
                     return this.showHomeResetConfirm(false);
                 const confirmHomeReset = event.target.closest("#confirmHomeResetButton");
                 if (confirmHomeReset)
-                    return this.restartHomeSetup(confirmHomeReset);
+                    return this.runAccountMutation(
+                        "restart-home-setup",
+                        () => this.restartHomeSetup(confirmHomeReset)
+                    );
                 const taskPerson = event.target.closest("[data-task-person]");
                 if (taskPerson)
                     return this.selectTaskPerson(taskPerson.dataset.taskPerson);
@@ -48,33 +51,53 @@
                     return this.openPerson(person.dataset.personRow);
                 const revoke = event.target.closest("[data-revoke-invite]");
                 if (revoke)
-                    return this.revokeInvite(revoke.dataset.revokeInvite);
+                    return this.runAccountMutation(
+                        `revoke-invite:${revoke.dataset.revokeInvite}`,
+                        () => this.revokeInvite(revoke.dataset.revokeInvite)
+                    );
                 const missionFilter = event.target.closest("[data-kid-mission-filter]");
                 if (missionFilter)
                     return this.setKidMissionEditorFilter(missionFilter.dataset.kidMissionFilter);
                 const missionToggle = event.target.closest("[data-kid-mission-toggle]");
                 if (missionToggle) {
-                    return this.toggleKidMission(missionToggle.dataset.kidMissionToggle, missionToggle.dataset.kidMissionActive === "true", missionToggle);
+                    return this.runAccountMutation(
+                        `kid-mission:${missionToggle.dataset.kidMissionToggle}`,
+                        () => this.toggleKidMission(
+                            missionToggle.dataset.kidMissionToggle,
+                            missionToggle.dataset.kidMissionActive === "true",
+                            missionToggle
+                        )
+                    );
                 }
                 const missionPicture = event.target.closest("[data-kid-mission-picture]");
                 if (missionPicture)
                     return this.chooseKidMissionPicture(missionPicture.dataset.kidMissionPicture);
                 const removeMissionPicture = event.target.closest("[data-kid-mission-picture-remove]");
                 if (removeMissionPicture) {
-                    return this.removeKidMissionPicture(removeMissionPicture.dataset.kidMissionPictureRemove, removeMissionPicture);
+                    return this.runAccountMutation(
+                        `kid-picture:${removeMissionPicture.dataset.kidMissionPictureRemove}`,
+                        () => this.removeKidMissionPicture(
+                            removeMissionPicture.dataset.kidMissionPictureRemove,
+                            removeMissionPicture
+                        )
+                    );
                 }
                 const actionMap = [
-                    ["editLevel", "editLevel"], ["archiveLevel", "archiveLevel"],
-                    ["editRoom", "editRoom"], ["archiveRoom", "archiveRoom"],
-                    ["editZone", "editZone"], ["archiveZone", "archiveZone"],
-                    ["editInventory", "editInventory"], ["archiveInventory", "archiveInventory"],
-                    ["editLaundry", "editLaundry"], ["archiveLaundry", "archiveLaundry"],
-                    ["editCare", "editCare"], ["toggleCare", "toggleCare"]
+                    ["editLevel", "editLevel"], ["archiveLevel", "archiveLevel", true],
+                    ["editRoom", "editRoom"], ["archiveRoom", "archiveRoom", true],
+                    ["editZone", "editZone"], ["archiveZone", "archiveZone", true],
+                    ["editInventory", "editInventory"], ["archiveInventory", "archiveInventory", true],
+                    ["editLaundry", "editLaundry"], ["archiveLaundry", "archiveLaundry", true],
+                    ["editCare", "editCare"], ["toggleCare", "toggleCare", true]
                 ];
-                for (const [datasetKey, method] of actionMap) {
+                for (const [datasetKey, method, writesDatabase] of actionMap) {
                     const target = event.target.closest(`[data-${datasetKey.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`)}]`);
-                    if (target)
-                        return this[method](target.dataset[datasetKey]);
+                    if (!target)
+                        continue;
+                    const value = target.dataset[datasetKey];
+                    return writesDatabase
+                        ? this.runAccountMutation(`${method}:${value}`, () => this[method](value))
+                        : this[method](value);
                 }
             });
             document.addEventListener("keydown", event => {
@@ -90,10 +113,20 @@
                 event.preventDefault();
                 this.openPerson(person.dataset.personRow);
             });
+            const submitMutation = (id, key, handler) => {
+                this.on(id, "submit", event => {
+                    event.preventDefault();
+                    return this.runAccountMutation(key, () => handler(event));
+                });
+            };
+            const clickMutation = (id, key, handler) => {
+                this.on(id, "click", () => this.runAccountMutation(key, handler));
+            };
+
             this.on("accountMobileSection", "change", event => this.openTab(event.target.value));
-            this.on("personalAccountForm", "submit", event => this.saveProfile(event));
-            this.on("householdIdentityForm", "submit", event => this.saveHousehold(event));
-            this.on("accountPageSignOut", "click", () => this.signOut());
+            submitMutation("personalAccountForm", "save-profile", event => this.saveProfile(event));
+            submitMutation("householdIdentityForm", "save-household", event => this.saveHousehold(event));
+            clickMutation("accountPageSignOut", "sign-out", () => this.signOut());
             this.on("addAdultButton", "click", () => this.openNewPerson("adult"));
             this.on("addChildButton", "click", () => this.openNewPerson("child"));
             this.on("closePersonEditor", "click", () => {
@@ -104,10 +137,10 @@
                 this.showPersonEditor(false);
                 this.renderPeople();
             });
-            this.on("personForm", "submit", event => this.savePerson(event));
-            this.on("saveRoleButton", "click", () => this.saveRole());
-            this.on("createInviteButton", "click", () => this.createInvite());
-            this.on("linkMyAccountButton", "click", () => this.linkCurrentAccount());
+            submitMutation("personForm", "save-person", event => this.savePerson(event));
+            clickMutation("saveRoleButton", "save-role", () => this.saveRole());
+            clickMutation("createInviteButton", "create-invite", () => this.createInvite());
+            clickMutation("linkMyAccountButton", "link-account", () => this.linkCurrentAccount());
             this.on("generateKidPinButton", "click", () => this.generateNewKidPin());
             this.on("copyKidLinkButton", "click", () => this.copyKidLink());
             this.on("copyHouseholdKidPortalButton", "click", () => this.copyHouseholdKidPortal());
@@ -117,10 +150,6 @@
                     safe;
                 this.draftKidPin =
                     safe;
-                if (safe.length === 4 &&
-                    this.selectedPersonId) {
-                    this.rememberKidPin(this.selectedPersonId, safe);
-                }
             });
             this.on("toggleKidPinButton", "click", () => this.toggleKidPinVisibility());
             [
@@ -133,8 +162,11 @@
             this.on("reviewKidMissionsButton", "click", () => this.openKidMissionEditor());
             this.on("closeKidMissionEditorButton", "click", () => this.closeKidMissionEditor());
             this.on("doneKidMissionEditorButton", "click", () => this.closeKidMissionEditor());
-            this.on("kidCustomMissionForm", "submit", event => this.addCustomKidMission(event));
-            this.on("kidMissionImageInput", "change", event => this.handleKidMissionImageChange(event));
+            submitMutation("kidCustomMissionForm", "add-kid-mission", event => this.addCustomKidMission(event));
+            this.on("kidMissionImageInput", "change", event => this.runAccountMutation(
+                `kid-image:${this.kidMissionEditorPendingTaskId || "mission"}`,
+                () => this.handleKidMissionImageChange(event)
+            ));
             const missionBackdrop = document.getElementById("kidMissionEditorBackdrop");
             missionBackdrop?.addEventListener("click", event => {
                 if (event.target === missionBackdrop)
@@ -155,20 +187,20 @@
                 this.setTheme(next);
             });
             this.on("resetTaskFormButton", "click", () => this.clearSimpleTaskForm({ keepPerson: true }));
-            this.on("taskAssignmentForm", "submit", event => this.saveTask(event));
+            submitMutation("taskAssignmentForm", "save-task", event => this.saveTask(event));
             this.on("taskDueDateInput", "change", () => this.configureTaskSchedule());
-            this.on("levelForm", "submit", event => this.saveLevel(event));
+            submitMutation("levelForm", "save-level", event => this.saveLevel(event));
             this.on("clearLevelButton", "click", () => this.clearLevelForm());
-            this.on("roomForm", "submit", event => this.saveRoom(event));
+            submitMutation("roomForm", "save-room", event => this.saveRoom(event));
             this.on("clearRoomButton", "click", () => this.clearRoomForm());
-            this.on("zoneForm", "submit", event => this.saveZone(event));
+            submitMutation("zoneForm", "save-zone", event => this.saveZone(event));
             this.on("clearZoneButton", "click", () => this.clearZoneForm());
-            this.on("inventoryLocationForm", "submit", event => this.saveInventory(event));
+            submitMutation("inventoryLocationForm", "save-inventory-location", event => this.saveInventory(event));
             this.on("clearInventoryButton", "click", () => this.clearInventoryForm());
-            this.on("laundrySystemForm", "submit", event => this.saveLaundrySystem(event));
-            this.on("laundryAreaForm", "submit", event => this.saveLaundryArea(event));
+            submitMutation("laundrySystemForm", "save-laundry-system", event => this.saveLaundrySystem(event));
+            submitMutation("laundryAreaForm", "save-laundry-area", event => this.saveLaundryArea(event));
             this.on("clearLaundryButton", "click", () => this.clearLaundryForm());
-            this.on("homeCareFeatureForm", "submit", event => this.saveCareFeature(event));
+            submitMutation("homeCareFeatureForm", "save-home-care", event => this.saveCareFeature(event));
             this.on("clearCareButton", "click", () => this.clearCareForm());
             window.addEventListener("hashchange", () => this.openTab(this.tabFromHash(), { updateHash: false }));
         },

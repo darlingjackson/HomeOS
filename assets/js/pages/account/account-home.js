@@ -244,10 +244,54 @@
         async archiveZone(id) {
             if (!this.requireAdmin())
                 return;
-            const clearRooms = await this.supabase.from("rooms").update({ zone_id: null }).eq("household_id", this.householdId()).eq("zone_id", id);
-            if (clearRooms.error)
-                return this.handleError("HOME OS could not remove areas from this zone.", clearRooms.error);
-            await this.archiveRecord("zones", id, "active", false, "Cleaning zone archived.");
+
+            const householdId = this.householdId();
+            const affectedRoomIds = this.home.rooms
+                .filter(room => room.zone_id === id)
+                .map(room => room.id);
+
+            const clearRooms = await this.supabase
+                .from("rooms")
+                .update({ zone_id: null })
+                .eq("household_id", householdId)
+                .eq("zone_id", id);
+
+            if (clearRooms.error) {
+                return this.handleError(
+                    "HOME OS could not remove areas from this zone.",
+                    clearRooms.error
+                );
+            }
+
+            const archive = await this.supabase
+                .from("zones")
+                .update({ active: false })
+                .eq("id", id)
+                .eq("household_id", householdId);
+
+            if (archive.error) {
+                if (affectedRoomIds.length) {
+                    const rollback = await this.supabase
+                        .from("rooms")
+                        .update({ zone_id: id })
+                        .eq("household_id", householdId)
+                        .in("id", affectedRoomIds);
+
+                    if (rollback.error) {
+                        console.error(
+                            "[HOME OS] Zone archive rollback failed.",
+                            rollback.error
+                        );
+                    }
+                }
+
+                return this.handleError(
+                    "The cleaning zone could not be archived.",
+                    archive.error
+                );
+            }
+
+            await this.refreshHome("Cleaning zone archived.");
         },
         async saveInventory(event) {
             event.preventDefault();
@@ -287,17 +331,66 @@
             event.preventDefault();
             if (!this.requireAdmin())
                 return;
+
+            const householdId = this.householdId();
             const mode = this.value("laundrySystemInput") || "color";
+            const latest = await this.supabase
+                .from("household_settings")
+                .select("settings")
+                .eq("household_id", householdId)
+                .maybeSingle();
+
+            if (latest.error) {
+                return this.handleError(
+                    "The laundry system could not be saved.",
+                    latest.error
+                );
+            }
+
+            const currentSettings =
+                latest.data?.settings &&
+                typeof latest.data.settings === "object"
+                    ? latest.data.settings
+                    : {};
+
+            const currentLaundry =
+                currentSettings.laundry_system &&
+                typeof currentSettings.laundry_system === "object"
+                    ? currentSettings.laundry_system
+                    : {};
+
             const nextSettings = {
-                ...(this.home.settings || {}),
+                ...currentSettings,
                 laundrySystem: mode,
-                laundry_system: { mode, updatedAt: new Date().toISOString() }
+                laundry_system: {
+                    ...currentLaundry,
+                    mode,
+                    updatedAt: new Date().toISOString()
+                }
             };
-            const { error } = await this.supabase.from("household_settings").upsert({ household_id: this.householdId(), settings: nextSettings }, { onConflict: "household_id" });
-            if (error)
-                return this.handleError("The laundry system could not be saved.", error);
+
+            const { error } = await this.supabase
+                .from("household_settings")
+                .upsert(
+                    {
+                        household_id: householdId,
+                        settings: nextSettings
+                    },
+                    { onConflict: "household_id" }
+                );
+
+            if (error) {
+                return this.handleError(
+                    "The laundry system could not be saved.",
+                    error
+                );
+            }
+
             this.home.settings = nextSettings;
-            this.notify("Laundry system saved.", { tone: "success", title: "Home Setup" });
+            this.notify("Laundry system saved.", {
+                tone: "success",
+                title: "Home Setup"
+            });
         },
         async saveLaundryArea(event) {
             event.preventDefault();

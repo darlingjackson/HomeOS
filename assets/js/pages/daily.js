@@ -42,7 +42,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             // Make the page feel alive immediately. The clock, timer and
             // companion do not need to wait on network/database work.
-            this.restoreTimer();
             this.startClock();
             this.startTimerClock();
             this.renderCompanion();
@@ -165,6 +164,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             return new Date().getHours() < 17 ? "opening" : "closing";
         },
         renderGuide() {
+            const opening = this.calculateProgress(this.runtimeForShift("opening"));
+            const closing = this.calculateProgress(this.runtimeForShift("closing"));
             const overall = this.calculateOverallProgress();
             let message;
             if (overall.total && overall.percent === 100) {
@@ -182,6 +183,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             this.setText("dailyGuideMessage", message);
         },
         renderProgress() {
+            const opening = this.calculateProgress(this.runtimeForShift("opening"));
+            const closing = this.calculateProgress(this.runtimeForShift("closing"));
             const overall = this.calculateOverallProgress();
             this.setText("openingShiftProgress", `${opening.percent}%`);
             this.setText("closingShiftProgress", `${closing.percent}%`);
@@ -348,7 +351,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         personName(id) {
             return this.daily.people.find(person => person.id === id)?.display_name || "";
         },
-        async toggleTask(taskId) {
+        async toggleTask(taskId, checkbox = null) {
             const runtime = this.runtimeByTaskId(taskId);
             if (!runtime?.occurrence)
                 return;
@@ -370,13 +373,23 @@ document.addEventListener("DOMContentLoaded", async () => {
             const before = this.captureMilestones();
             const existing = runtime.completions.find(row => row.family_member_id === personId);
             const completing = !existing;
+            const originalChecked = Boolean(existing);
             const title = runtime.task.title;
+
+            if (checkbox) {
+                checkbox.disabled = true;
+            }
+
             const result = await taskService.setCompletion({
                 occurrenceId: runtime.occurrence.id,
                 familyMemberId: personId,
                 complete: completing
             });
             if (result.error) {
+                if (checkbox) {
+                    checkbox.checked = originalChecked;
+                    checkbox.disabled = false;
+                }
                 this.toast(result.error.message || "HOME OS could not update this task.");
                 return;
             }
@@ -556,12 +569,30 @@ document.addEventListener("DOMContentLoaded", async () => {
             input.focus();
             this.toast(`${title} added to the shared shopping list.`);
         },
-        async toggleShoppingItem(itemId, complete) {
-            const result = await service.setShoppingComplete(this.state.household.id, itemId, complete);
-            if (result.error)
+        async toggleShoppingItem(itemId, complete, checkbox = null) {
+            const item = this.daily?.shopping?.find(row => row.id === itemId) || null;
+            const originalChecked = Boolean(item?.completed);
+
+            if (checkbox) {
+                checkbox.disabled = true;
+            }
+
+            const result = await service.setShoppingComplete(
+                this.state.household.id,
+                itemId,
+                complete
+            );
+
+            if (result.error) {
+                if (checkbox) {
+                    checkbox.checked = originalChecked;
+                    checkbox.disabled = false;
+                }
                 this.toast(result.error.message || "HOME OS could not update this shopping item.");
-            else
-                await this.reload();
+                return;
+            }
+
+            await this.reload();
         },
         async removeShoppingItem(itemId) {
             const result = await service.removeShoppingItem(this.state.household.id, itemId);
@@ -671,49 +702,58 @@ document.addEventListener("DOMContentLoaded", async () => {
             await this.reload();
             this.toast(result.data?.stage === "complete" ? `${load.name} is finished and put away.` : `${load.name} moved to ${this.laundryStageLabel(result.data.stage)}.`);
         },
-        get wakeTimeStorageKey() {
-            return [
-                "homeos",
-                "wake-time",
-                this.state?.user?.id || "user",
-                this.state?.household?.id || "home"
-            ].join(":");
-        },
-        get bedTimeStorageKey() {
-            return [
-                "homeos",
-                "bed-time",
-                this.state?.user?.id || "user",
-                this.state?.household?.id || "home"
-            ].join(":");
-        },
         wakeTime() {
-            const value = localStorage.getItem(this.wakeTimeStorageKey) || "08:00";
+            const value = this.daily?.schedule?.wakeTime || "08:00";
             return /^\d{2}:\d{2}$/.test(value) ? value : "08:00";
         },
         bedTime() {
-            let value = localStorage.getItem(this.bedTimeStorageKey);
-            // 10:30 PM was the old HOME OS default. Move households still on
-            // that untouched default to the new 10:00 PM companion bedtime.
-            if (!value || value === "22:30") {
-                value = "22:00";
-                localStorage.setItem(this.bedTimeStorageKey, value);
-            }
+            const value = this.daily?.schedule?.bedTime || "22:00";
             return /^\d{2}:\d{2}$/.test(value) ? value : "22:00";
         },
-        saveDaySchedule() {
+        async saveDaySchedule() {
+            if (!this.canManageTasks()) {
+                this.toast("Only a HomeOS Owner or Admin can change the household day cycle.");
+                return;
+            }
+
             const wake = document.getElementById("dailyWakeTime")?.value || "08:00";
             const bed = document.getElementById("dailyBedTime")?.value || "22:00";
+
             if (!/^\d{2}:\d{2}$/.test(wake) || !/^\d{2}:\d{2}$/.test(bed)) {
                 this.toast("Choose both a wake-up time and bedtime first.");
                 return;
             }
+
             if (wake === bed) {
                 this.toast("Wake-up time and bedtime need to be different.");
                 return;
             }
-            localStorage.setItem(this.wakeTimeStorageKey, wake);
-            localStorage.setItem(this.bedTimeStorageKey, bed);
+
+            const button = document.getElementById("dailySaveSchedule");
+            if (button) {
+                button.disabled = true;
+                button.dataset.originalText = button.textContent || "Save";
+                button.textContent = "Saving…";
+            }
+
+            const result = await service.saveDaySchedule(
+                this.state.household.id,
+                { wakeTime: wake, bedTime: bed }
+            );
+
+            if (button) {
+                button.disabled = false;
+                button.textContent = button.dataset.originalText || "Save";
+            }
+
+            if (result.error) {
+                console.error("[HomeOS] Day-cycle save failed.", result.error);
+                this.toast(result.error.message || "HOME OS could not save the day cycle.");
+                this.renderCompanion();
+                return;
+            }
+
+            this.daily.schedule = result.data;
             this.renderCompanion();
             this.toast(`Your companion will wake at ${this.formatScheduleTime(wake)} and rest at ${this.formatScheduleTime(bed)}.`);
         },
@@ -1349,36 +1389,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
             this.loadTimerFromTask(taskId, { scroll: false, preserveTime: true });
         },
-        restoreTimer() {
-            let saved = null;
-            try {
-                saved = JSON.parse(localStorage.getItem(this.timerStorageKey) || "null");
-            }
-            catch (_) { }
-            if (!saved || typeof saved !== "object")
-                return;
-            const minutes = Math.max(1, Math.min(180, Number(saved.minutes) || 10));
-            const durationSeconds = Math.max(60, Number(saved.durationSeconds) || minutes * 60);
-            let remainingSeconds = Math.max(0, Number(saved.remainingSeconds) || durationSeconds);
-            let running = Boolean(saved.running);
-            const endAt = Number(saved.endAt) || null;
-            if (running && endAt) {
-                remainingSeconds = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
-                if (remainingSeconds <= 0)
-                    running = false;
-            }
-            this.timer = {
-                minutes,
-                durationSeconds,
-                remainingSeconds,
-                running,
-                endAt: running ? endAt : null,
-                label: String(saved.label || ""),
-                sourceTaskId: saved.sourceTaskId || null
-            };
-        },
         saveTimer() {
-            localStorage.setItem(this.timerStorageKey, JSON.stringify(this.timer));
+            // Focus Timer state is intentionally session-only. It is not household data.
         },
         startTimerClock() {
             window.clearInterval(this.timerInterval);
@@ -1606,10 +1618,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.addEventListener("change", event => {
                 const task = event.target.closest("[data-daily-task]");
                 if (task)
-                    return this.toggleTask(task.dataset.dailyTask);
+                    return this.toggleTask(task.dataset.dailyTask, task);
                 const shopping = event.target.closest("[data-shopping-check]");
                 if (shopping)
-                    return this.toggleShoppingItem(shopping.dataset.shoppingCheck, shopping.checked);
+                    return this.toggleShoppingItem(shopping.dataset.shoppingCheck, shopping.checked, shopping);
                 if (event.target.id === "dailyCustomMinutes") {
                     const value = Math.max(1, Math.min(180, Number(event.target.value) || 10));
                     event.target.value = value;

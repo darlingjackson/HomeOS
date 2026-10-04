@@ -22,9 +22,15 @@
         return String(value || "").trim().toLowerCase();
     }
     // --- Account Creation + Sign In ---
-    async function signUp({ displayName, email, password }) {
+    async function signUp({
+        displayName,
+        email,
+        password,
+        pendingInviteToken = ""
+    }) {
         const normalizedName = String(displayName || "").trim();
         const normalizedEmail = normalizeEmail(email);
+        const inviteToken = String(pendingInviteToken || "").trim();
         if (!normalizedName)
             throw new Error("Display name is required.");
         if (!normalizedEmail)
@@ -37,7 +43,8 @@
             options: {
                 emailRedirectTo: pageUrl(`${window.HomeOS.config.routes.login}?confirmed=true`),
                 data: {
-                    display_name: normalizedName
+                    display_name: normalizedName,
+                    homeos_pending_invite_token: inviteToken || null
                 }
             }
         });
@@ -59,6 +66,22 @@
         const { data, error } = await client().auth.getSession();
         return {
             session: data?.session || null,
+            error
+        };
+    }
+    async function getUser() {
+        const { data, error } = await client().auth.getUser();
+        return {
+            user: data?.user || null,
+            error
+        };
+    }
+    async function updateUserMetadata(metadata = {}) {
+        const { data, error } = await client().auth.updateUser({
+            data: metadata
+        });
+        return {
+            user: data?.user || null,
             error
         };
     }
@@ -84,6 +107,8 @@
         signIn,
         signOut,
         getSession,
+        getUser,
+        updateUserMetadata,
         updateAccount,
         onAuthStateChange,
         pageUrl

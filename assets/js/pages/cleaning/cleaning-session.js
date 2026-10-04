@@ -355,11 +355,6 @@
             // Lumi reacts to the same real checklist state as the task row.
             // Section-level reactions are added below once the group status is known.
             if (!done) {
-                if (this.cleaningAutoCompleteSessionId === session.id) {
-                    window.clearTimeout(this.cleaningAutoCompleteTimer);
-                    this.cleaningAutoCompleteTimer = null;
-                    this.cleaningAutoCompleteSessionId = null;
-                }
                 this.reactCleaningCompanion?.({
                     task,
                     progress,
@@ -402,26 +397,17 @@
             if (progress.total > 0 &&
                 progress.complete ===
                     progress.total) {
-                this.showTaskReaction("Checklist complete ✦ Saving this reset to whole-home Cleaning memory…", "complete");
+                this.showTaskReaction(
+                    "Checklist complete ✦ Saving this reset to whole-home Cleaning memory…",
+                    "complete"
+                );
                 this.launchChecklistCelebration();
                 this.launchFullCleaningFireworks?.("CHECKLIST COMPLETE");
-                // A fully checked checklist is a completed clean at every level.
-                // HomeOS now commits Quick, Standard and Deep sessions
-                // automatically so the whole-home tracker always remembers it.
-                window.clearTimeout(this.cleaningAutoCompleteTimer);
-                this.cleaningAutoCompleteSessionId = session.id;
-                this.cleaningAutoCompleteTimer = window.setTimeout(async () => {
-                    const active = this.activeSession();
-                    if (!active || active.id !== session.id) {
-                        return;
-                    }
-                    const latestProgress = this.sessionProgress(active);
-                    if (!latestProgress.total ||
-                        latestProgress.complete !== latestProgress.total) {
-                        return;
-                    }
-                    await this.complete();
-                }, 1500);
+
+                // The final checkoff is already saved. Finish the session now so
+                // refreshing or leaving the page cannot strand a 100% checklist.
+                await this.complete();
+                return;
             }
             else if (!session.room_id &&
                 groupComplete) {
@@ -538,9 +524,6 @@
             this.scrollInlineCleanIntoView();
         },
         async complete() {
-            window.clearTimeout(this.cleaningAutoCompleteTimer);
-            this.cleaningAutoCompleteTimer = null;
-            this.cleaningAutoCompleteSessionId = null;
             const session = this.activeSession();
             if (!session) {
                 return;

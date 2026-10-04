@@ -12,7 +12,7 @@
     window.HomeOS.inventoryPageModules.events = {
         // --- Events ---
         bindEvents() {
-            document.addEventListener("click", event => {
+            document.addEventListener("click", async event => {
                 // --- Select Node ---
                 const zone = event.target.closest("[data-inventory-zone]");
                 if (zone) {
@@ -62,7 +62,7 @@
                         .inventoryGuideAction;
                     if (action ===
                         "purchase") {
-                        this.markPurchased();
+                        await this.markPurchased();
                     }
                     else if (action ===
                         "shortages" ||
@@ -78,16 +78,16 @@
                 // --- Current Quantity ---
                 const adjustment = event.target.closest("[data-adjust-item]");
                 if (adjustment) {
-                    this.adjustItem(adjustment.dataset
-                        .adjustItem, Number(adjustment.dataset
-                        .adjustValue));
+                    await this.adjustItem(
+                        adjustment.dataset.adjustItem,
+                        Number(adjustment.dataset.adjustValue)
+                    );
                     return;
                 }
                 // --- Add Shortage ---
                 const shortage = event.target.closest("[data-add-shortage]");
                 if (shortage) {
-                    this.addShortage(shortage.dataset
-                        .addShortage);
+                    await this.addShortage(shortage.dataset.addShortage);
                     return;
                 }
                 // --- Edit Item ---
@@ -100,38 +100,37 @@
                 // --- Delete Item ---
                 const deleteItem = event.target.closest("[data-delete-item]");
                 if (deleteItem) {
-                    this.deleteItem(deleteItem.dataset
-                        .deleteItem);
+                    await this.deleteItem(deleteItem.dataset.deleteItem);
                     return;
                 }
                 // --- Add All Shortages ---
                 if (event.target.closest("#addAllShortagesButton")) {
-                    this.addAllShortages();
+                    await this.addAllShortages();
                     return;
                 }
                 // --- Add Custom Shopping ---
                 if (event.target.closest("#addCustomShoppingButton")) {
-                    this.addCustomShoppingItem();
+                    await this.addCustomShoppingItem();
                     return;
                 }
                 // --- Shopping Qty ---
                 const shoppingAdjust = event.target.closest("[data-shopping-adjust]");
                 if (shoppingAdjust) {
-                    this.adjustShoppingQuantity(shoppingAdjust.dataset
-                        .shoppingAdjust, Number(shoppingAdjust.dataset
-                        .shoppingValue));
+                    await this.adjustShoppingQuantity(
+                        shoppingAdjust.dataset.shoppingAdjust,
+                        Number(shoppingAdjust.dataset.shoppingValue)
+                    );
                     return;
                 }
                 // --- Remove Shopping ---
                 const remove = event.target.closest("[data-remove-shopping]");
                 if (remove) {
-                    this.removeShoppingItem(remove.dataset
-                        .removeShopping);
+                    await this.removeShoppingItem(remove.dataset.removeShopping);
                     return;
                 }
                 // --- Purchase ---
                 if (event.target.closest("#markPurchasedButton")) {
-                    this.markPurchased();
+                    await this.markPurchased();
                     return;
                 }
                 // --- Copy List ---
@@ -161,9 +160,8 @@
             // --- Auto Restock ---
             document
                 .getElementById("autoRestockToggle")
-                ?.addEventListener("change", event => {
-                this.setAutoRestock(event.target
-                    .checked);
+                ?.addEventListener("change", async event => {
+                await this.setAutoRestock(event.target.checked);
             });
             // --- Inventory Item Form Controls ---
             document
@@ -182,31 +180,34 @@
                 this.syncCustomInventoryFields();
             });
             // --- Shopping Checks ---
-            document.addEventListener("change", event => {
+            document.addEventListener("change", async event => {
                 const checkbox = event.target.closest("[data-shopping-check]");
+
                 if (checkbox) {
-                    this.toggleShoppingCheck(checkbox.dataset
-                        .shoppingCheck);
+                    await this.toggleShoppingCheck(
+                        checkbox.dataset.shoppingCheck
+                    );
                 }
             });
             // --- Add + Keep Dialog Open ---
             document
                 .getElementById("inventoryAddAnotherButton")
-                ?.addEventListener("click", () => {
-                this.addItemAndContinue();
+                ?.addEventListener("click", async () => {
+                await this.addItemAndContinue();
             });
             // --- Save Inventory Item ---
             document
                 .getElementById("inventoryItemForm")
-                ?.addEventListener("submit", event => {
+                ?.addEventListener("submit", async event => {
                 event.preventDefault();
-                if (this.saveItem()) {
+
+                if (await this.saveItem()) {
                     document
                         .getElementById("inventoryItemDialog")
                         ?.close();
                 }
             });
-            // STORE IN = OTHER
+            // --- Custom shopping location ---
             document
                 .getElementById("customShoppingLocation")
                 ?.addEventListener("change", () => {
@@ -214,21 +215,21 @@
             });
             document
                 .getElementById("customShoppingOtherLocation")
-                ?.addEventListener("keydown", event => {
+                ?.addEventListener("keydown", async event => {
                 if (event.key ===
                     "Enter") {
                     event.preventDefault();
-                    this.addCustomShoppingItem();
+                    await this.addCustomShoppingItem();
                 }
             });
-            // ENTER = ADD CUSTOM SHOPPING
+            // --- Add custom shopping with Enter ---
             document
                 .getElementById("customShoppingName")
-                ?.addEventListener("keydown", event => {
+                ?.addEventListener("keydown", async event => {
                 if (event.key ===
                     "Enter") {
                     event.preventDefault();
-                    this.addCustomShoppingItem();
+                    await this.addCustomShoppingItem();
                 }
             });
         },

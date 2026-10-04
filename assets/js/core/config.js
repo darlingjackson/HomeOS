@@ -5,11 +5,13 @@
 ============================================================ */
 
 window.HomeOS = window.HomeOS || {};
+
 window.HomeOS.config = Object.freeze({
-    // --- Supabase ---
+    // Supabase
     supabaseUrl: "https://jzjvguzxzrqtktkkblmk.supabase.co",
     supabasePublishableKey: "sb_publishable_bXvPzjAgkzhWbjho4df_zA_6aaNTrBf",
-    // --- Routes ---
+
+    // Shared routes
     routes: Object.freeze({
         home: "index.html",
         daily: "index.html",

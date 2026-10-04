@@ -48,7 +48,6 @@
     }
     window.HomeApp = { escapeHtml, formatDate, formatTime, toast };
 })();
-// --- Darling Homeos ---
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
     const InventoryApp = {
@@ -158,53 +157,42 @@ document.addEventListener("DOMContentLoaded", () => {
                 "Other"
             ]
         },
-        // --- Inventory Cleanup ---
-        INVENTORY_CLEANUP_VERSION: 1,
-        LEGACY_STARTER_ITEM_IDS: [
-            "item-rice",
-            "item-pasta",
-            "item-cereal",
-            "item-canned-tomatoes",
-            "item-milk",
-            "item-eggs",
-            "item-cheese",
-            "item-frozen-veg",
-            "item-chicken-breast",
-            "item-family-chicken",
-            "item-ground-beef",
-            "item-kids-drinks",
-            "item-water",
-            "item-sparkling",
-            "item-paper-towels",
-            "item-toilet-paper",
-            "item-dishwasher-pods",
-            "item-laundry-detergent",
-            "item-trash-bags"
-        ],
         selectedZone: "",
         searchTerm: "",
         clockTimer: null,
         databaseReady: false,
         applyingDatabaseState: false,
-        databaseSyncTimer: null,
+        databaseWriteChain: Promise.resolve(),
+        itemSaveInFlight: false,
         locationDbIds: new Map(),
         itemDbIds: new Map(),
         // --- Startup ---
         async init() {
-            // Wait for HomeStore to finish resolving the authenticated user + household before Inventory touches the database.
             if (window.HomeStore?.ready) {
                 await window.HomeStore.ready;
             }
+
             this.applySeasonalIdentity();
-            await this.loadDatabaseLocations();
-            this.ensureInventorySetup();
-            await this.initializeDatabase();
+
+            const databaseReady = await this.initializeDatabase();
+
+            if (!databaseReady) {
+                this.render(HomeStore.getState());
+
+                HomeApp.toast(
+                    "Inventory could not connect to Supabase. Changes are disabled until the database is available."
+                );
+                return;
+            }
+
             this.bindEvents();
             this.bindStateEvents();
+
             const state = HomeStore.getState();
             this.syncSelectedZone(state);
             this.render(state);
-        },
+            this.startClock();
+        }
     };
     // --- Inventory Page Modules ---
     const modules = window.HomeOS?.inventoryPageModules || {};
@@ -226,6 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
     InventoryApp
         .init()
         .catch(error => {
-        console.error("DARLING HomeOS Inventory startup failed.", error);
+        console.error("[HomeOS] Inventory startup failed.", error);
+        HomeApp.toast("Inventory could not start. Please refresh and try again.");
     });
 });

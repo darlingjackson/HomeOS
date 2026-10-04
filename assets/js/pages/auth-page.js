@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // --- Page State ---
     const AuthPage = {
         page,
-        pendingInviteKey: "homeos_pending_invite_token",
+        pendingInviteToken: "",
         // --- Initialization ---
         async init() {
             this.bindPasswordToggles();
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (join.error) {
                     if (state.household?.id &&
                         !this.hasExplicitInvite()) {
-                        this.clearPendingInvite();
+                        await this.clearPendingInvite();
                     }
                     else {
                         this.showError(this.friendlyInviteError(join.error));
@@ -136,118 +136,117 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
             if (path ===
                 "new") {
-                this.clearPendingInvite();
+                this.pendingInviteToken = "";
             }
         },
         // --- Invitation State ---
-        hasExplicitInvite() {
+        explicitInviteToken() {
             const params = new URLSearchParams(window.location.search);
-            return Boolean(String(params.get("invite") ||
-                "").trim());
+            return String(params.get("invite") || "").trim();
+        },
+        hasExplicitInvite() {
+            return Boolean(this.explicitInviteToken());
         },
         hydrateInviteFromUrl() {
-            const params = new URLSearchParams(window.location
-                .search);
-            const token = String(params.get("invite") ||
-                "")
-                .trim();
+            const token = this.explicitInviteToken();
+
             if (token) {
-                this.storePendingInvite(token);
+                this.pendingInviteToken = token;
             }
-            if (this.page !==
-                "signup") {
+
+            if (this.page !== "signup") {
                 return;
             }
-            const pending = token ||
-                this.pendingInvite();
-            if (!pending) {
+
+            if (!this.pendingInviteToken) {
                 return;
             }
+
             const existing = document
                 .querySelector('input[name="homePath"][value="existing"]');
             const inviteInput = document
                 .getElementById("signupInviteToken");
+
             if (existing) {
-                existing.checked =
-                    true;
+                existing.checked = true;
             }
+
             if (inviteInput) {
-                inviteInput.value =
-                    pending;
+                inviteInput.value = this.pendingInviteToken;
             }
+
             this.syncHouseholdChoice();
         },
         householdPath() {
-            return (document
-                .querySelector('input[name="homePath"]:checked')
-                ?.value ||
-                "new");
+            return (
+                document
+                    .querySelector('input[name="homePath"]:checked')
+                    ?.value ||
+                "new"
+            );
         },
         pendingInvite() {
-            try {
-                return (window
-                    .localStorage
-                    .getItem(this.pendingInviteKey) ||
-                    "")
-                    .trim();
-            }
-            catch (error) {
+            return String(this.pendingInviteToken || "").trim();
+        },
+        async pendingInviteFromAccount() {
+            const result = await window.HomeOS.auth.getUser?.();
+
+            if (result?.error || !result?.user) {
                 return "";
             }
+
+            return String(
+                result.user.user_metadata?.homeos_pending_invite_token || ""
+            ).trim();
         },
-        storePendingInvite(token) {
-            const normalized = String(token ||
-                "")
-                .trim();
-            if (!normalized) {
-                return;
-            }
-            try {
-                window
-                    .localStorage
-                    .setItem(this.pendingInviteKey, normalized);
-            }
-            catch (error) {
-                console.warn("[HomeOS] Could not persist invitation token.", error);
-            }
-        },
-        clearPendingInvite() {
-            try {
-                window
-                    .localStorage
-                    .removeItem(this.pendingInviteKey);
-            }
-            catch (error) {
-                // Browser storage unavailable.
+        async clearPendingInvite() {
+            this.pendingInviteToken = "";
+
+            const result = await window.HomeOS.auth.updateUserMetadata?.({
+                homeos_pending_invite_token: null
+            });
+
+            if (result?.error) {
+                console.warn(
+                    "[HomeOS] Household invitation was accepted, but its temporary account marker could not be cleared.",
+                    result.error
+                );
             }
         },
         async acceptPendingInvite() {
-            const token = this.pendingInvite();
+            const token =
+                this.pendingInvite() ||
+                await this.pendingInviteFromAccount();
+
             if (!token) {
                 return {
                     accepted: false,
                     error: null
                 };
             }
+
             const service = window.HomeOS
                 ?.services
                 ?.people;
-            if (!service
-                ?.acceptInvite) {
+
+            if (!service?.acceptInvite) {
                 return {
                     accepted: false,
                     error: new Error("HomeOS invitation service is unavailable.")
                 };
             }
-            const result = await service
-                .acceptInvite(token);
+
+            const result = await service.acceptInvite(token);
+
             if (result.error) {
                 return {
                     accepted: false,
                     error: result.error
                 };
             }
-            this.clearPendingInvite();
+
+            await this.clearPendingInvite();
+
             return {
                 accepted: true,
                 error: null
@@ -323,7 +322,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (state.household?.id &&
                         !this.hasExplicitInvite()) {
                         // Stale invite from an earlier flow. The account login itself succeeded, so discard the stale token and continue to the user's household.
-                        this.clearPendingInvite();
+                        await this.clearPendingInvite();
                     }
                     else {
                         this.showError(this.friendlyInviteError(join.error));
@@ -379,10 +378,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
             if (homePath ===
                 "existing") {
-                this.storePendingInvite(inviteToken);
+                this.pendingInviteToken = inviteToken;
             }
             else {
-                this.clearPendingInvite();
+                this.pendingInviteToken = "";
             }
             if (password.length <
                 8) {
@@ -403,7 +402,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                     .signUp({
                     displayName,
                     email,
-                    password
+                    password,
+                    pendingInviteToken: homePath === "existing"
+                        ? inviteToken
+                        : ""
                 });
                 if (error) {
                     this.showError(this.friendlyAuthError(error));

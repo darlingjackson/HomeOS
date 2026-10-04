@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         toastTimer: null,
         declutterSeedPending: new Set(),
         declutterSeedFailed: new Set(),
+        pendingMutations: new Set(),
         async init() {
             if (!service) {
                 console.error("HomeOS Seasonal service is unavailable.");
@@ -93,6 +94,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                 this.ensureSelection(true);
             }
             this.render();
+        },
+        async runMutation(key, work) {
+            const mutationKey = String(key || "seasonal");
+
+            if (this.pendingMutations.has(mutationKey)) {
+                return;
+            }
+
+            this.pendingMutations.add(mutationKey);
+
+            try {
+                return await work();
+            } catch (error) {
+                console.error("[HomeOS] Seasonal update failed.", error);
+                this.toast(
+                    error?.message ||
+                    "HomeOS could not save that Seasonal change."
+                );
+            } finally {
+                this.pendingMutations.delete(mutationKey);
+            }
         },
         // --- Calendar / Cycle ---
         calendarSeason() {
@@ -836,17 +858,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
             return common;
         },
-        declutterSeedKey(roomId) {
-            return [
-                "homeos-seasonal-declutter",
-                this.data
-                    ?.reset
-                    ?.id ||
-                    "reset",
-                roomId
-            ]
-                .join(":");
-        },
         async ensureDeclutterForCurrentRoom() {
             const target = this.currentTarget();
             if (!target ||
@@ -862,21 +873,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 task.universalTask
                     ?.source_type ===
                     "seasonal_declutter");
-            const storageKey = this.declutterSeedKey(target.id);
             if (hasDeclutter) {
-                try {
-                    localStorage.setItem(storageKey, "1");
-                }
-                catch (_) { }
                 return false;
             }
-            try {
-                if (localStorage.getItem(storageKey) ===
-                    "1") {
-                    return false;
-                }
-            }
-            catch (_) { }
             if (this.declutterSeedPending
                 .has(target.id) ||
                 this.declutterSeedFailed
@@ -901,18 +900,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                 })));
                 const succeeded = results.every(result => !result.error &&
                     !result.placementError);
-                if (succeeded) {
-                    try {
-                        localStorage.setItem(storageKey, "1");
-                    }
-                    catch (_) { }
-                }
-                else {
+                if (!succeeded) {
                     this.declutterSeedFailed
                         .add(target.id);
-                    await Promise.all(results
-                        .filter(result => result.resetTaskId)
-                        .map(result => service.removeTask(result.resetTaskId)));
+                    const cleanup = await Promise.all(
+                        results
+                            .filter(result => result.resetTaskId)
+                            .map(result => service.removeTask(result.resetTaskId))
+                    );
+                    const cleanupError = cleanup.find(result => result?.error)?.error;
+
+                    if (cleanupError) {
+                        throw cleanupError;
+                    }
                 }
                 return succeeded;
             }
@@ -936,7 +936,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                         this.reload(false);
                     }
                 })
-                    .catch(error => console.error("[HomeOS] Could not add declutter reminders.", error));
+                    .catch(error => {
+                    console.error("[HomeOS] Could not add declutter reminders.", error);
+                    this.toast(
+                        error?.message ||
+                        "HomeOS could not save the declutter reminders."
+                    );
+                });
             }
             const container = document
                 .getElementById("seasonTaskList");
@@ -1371,8 +1377,23 @@ document.addEventListener("DOMContentLoaded", async () => {
                 checkboxBeforeSave.disabled =
                     true;
             }
-            const result = await service
-                .setTask(taskId, done);
+            let result;
+
+            try {
+                result = await service.setTask(taskId, done);
+            } catch (error) {
+                if (checkboxBeforeSave) {
+                    checkboxBeforeSave.checked = previousDone;
+                    checkboxBeforeSave.disabled = false;
+                }
+
+                this.toast(
+                    error?.message ||
+                    "HomeOS could not update this Seasonal task."
+                );
+                return;
+            }
+
             if (result.error) {
                 if (checkboxBeforeSave) {
                     checkboxBeforeSave.checked =
@@ -1443,36 +1464,38 @@ document.addEventListener("DOMContentLoaded", async () => {
                 button.textContent =
                     "Adding…";
             }
-            const result = await service
-                .addTask({
-                resetId: this.data
-                    .reset
-                    .id,
-                title,
-                roomId: target.id,
-                zoneId: target.room
-                    ?.zone_id ||
-                    null,
-                placement,
-                seasonName: this.SEASONS[this.season].name
-            });
-            if (button) {
-                button.disabled = false;
-                button.textContent =
-                    "+ Add Task";
+            let result;
+
+            try {
+                result = await service.addTask({
+                    resetId: this.data.reset.id,
+                    title,
+                    roomId: target.id,
+                    zoneId: target.room?.zone_id || null,
+                    placement,
+                    seasonName: this.SEASONS[this.season].name
+                });
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = "+ Add Task";
+                }
             }
             if (result.error) {
                 this.toast(result.error.message ||
                     "HomeOS could not add this Seasonal task.");
                 return;
             }
-            input.value =
-                "";
-            await this.reload();
             if (result.placementError) {
-                this.toast("Task added, but HomeOS could not place it in the selected section.");
+                this.toast(
+                    result.placementError.message ||
+                    "HomeOS could not place this Seasonal task."
+                );
                 return;
             }
+
+            input.value = "";
+            await this.reload();
             const placementLabel = placement ===
                 "core"
                 ? "Core Deep Reset"
@@ -1567,7 +1590,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const root = document
                 .getElementById("seasonDetailRoot") ||
                 document;
-            root.addEventListener("click", event => {
+            root.addEventListener("click", async event => {
                 const target = event.target
                     instanceof
                         Element
@@ -1579,7 +1602,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
                 if (target.closest("[data-begin-season]")) {
                     event.preventDefault();
-                    this.beginWorkspace();
+                    await this.runMutation(
+                        "begin-season",
+                        () => this.beginWorkspace()
+                    );
                     return;
                 }
                 const scroll = target.closest("[data-scroll-target]");
@@ -1673,29 +1699,45 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
                 const removeTask = target.closest("[data-remove-season-task]");
                 if (removeTask) {
-                    this.removeTask(removeTask.dataset
-                        .removeSeasonTask);
+                    const taskId = removeTask.dataset.removeSeasonTask;
+                    await this.runMutation(
+                        `remove-task:${taskId}`,
+                        () => this.removeTask(taskId)
+                    );
                     return;
                 }
                 const removeShopping = target.closest("[data-remove-season-shopping]");
                 if (removeShopping) {
-                    this.removeShopping(removeShopping.dataset
-                        .removeSeasonShopping);
+                    const shoppingId =
+                        removeShopping.dataset.removeSeasonShopping;
+                    await this.runMutation(
+                        `remove-shopping:${shoppingId}`,
+                        () => this.removeShopping(shoppingId)
+                    );
                     return;
                 }
                 if (target.closest("#addSeasonTaskButton")) {
-                    this.addTask();
+                    await this.runMutation(
+                        "add-task",
+                        () => this.addTask()
+                    );
                     return;
                 }
                 if (target.closest("#addSeasonShoppingButton")) {
-                    this.addShopping();
+                    await this.runMutation(
+                        "add-shopping",
+                        () => this.addShopping()
+                    );
                     return;
                 }
                 if (target.closest("#completeSeasonButton")) {
-                    this.completeSeason();
+                    await this.runMutation(
+                        "complete-season",
+                        () => this.completeSeason()
+                    );
                 }
             });
-            root.addEventListener("change", event => {
+            root.addEventListener("change", async event => {
                 const checkbox = event.target
                     instanceof
                         HTMLInputElement &&
@@ -1718,8 +1760,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                         .delete(taskGroup.dataset
                         .seasonGroupKey);
                 }
-                this.toggleTask(checkbox.dataset
-                    .seasonTask, checkbox.checked);
+                const taskId = checkbox.dataset.seasonTask;
+                await this.runMutation(
+                    `task:${taskId}`,
+                    () => this.toggleTask(taskId, checkbox.checked)
+                );
             });
             root.addEventListener("toggle", event => {
                 const details = event.target;
@@ -1746,20 +1791,26 @@ document.addEventListener("DOMContentLoaded", async () => {
             }, true);
             document
                 .getElementById("newSeasonTask")
-                ?.addEventListener("keydown", event => {
+                ?.addEventListener("keydown", async event => {
                 if (event.key ===
                     "Enter") {
                     event.preventDefault();
-                    this.addTask();
+                    await this.runMutation(
+                        "add-task",
+                        () => this.addTask()
+                    );
                 }
             });
             document
                 .getElementById("seasonShoppingName")
-                ?.addEventListener("keydown", event => {
+                ?.addEventListener("keydown", async event => {
                 if (event.key ===
                     "Enter") {
                     event.preventDefault();
-                    this.addShopping();
+                    await this.runMutation(
+                        "add-shopping",
+                        () => this.addShopping()
+                    );
                 }
             });
         },

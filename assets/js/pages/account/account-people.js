@@ -58,9 +58,16 @@
                             error: null
                         })
                 ]);
-                if (peopleResult.error) {
-                    throw peopleResult.error;
+                const fallbackError = [
+                    peopleResult,
+                    membershipsResult,
+                    invitesResult
+                ].find(result => result.error)?.error || null;
+
+                if (fallbackError) {
+                    throw fallbackError;
                 }
+
                 this.people =
                     peopleResult.data || [];
                 this.memberships =
@@ -414,22 +421,6 @@
             } while (used.has(pin));
             return pin;
         },
-        generateKidToken() {
-            if (window.crypto
-                ?.randomUUID) {
-                return window.crypto
-                    .randomUUID()
-                    .replaceAll("-", "");
-            }
-            return (Date.now()
-                .toString(36) +
-                Math.random()
-                    .toString(36)
-                    .slice(2) +
-                Math.random()
-                    .toString(36)
-                    .slice(2));
-        },
         buildHouseholdKidPortalUrl(token) {
             if (!token) {
                 return "";
@@ -629,11 +620,6 @@
                 "";
             this.draftKidBirthDate =
                 "";
-            this.draftKidToken =
-                this.selectedPersonMode ===
-                    "child"
-                    ? this.generateKidToken()
-                    : "";
             this.renderPersonAccessMode();
         },
         openPerson(personId) {
@@ -648,12 +634,8 @@
                 this.isChildPerson(person)
                     ? "child"
                     : "adult";
-            this.draftKidPin =
-                this.isChildPerson(person)
-                    ? this.cachedKidPin(personId)
-                    : "";
+            this.draftKidPin = "";
             this.draftKidTheme = "";
-            this.draftKidToken = "";
             this.draftKidBirthDate = "";
             this.renderPeople();
             this.renderPersonEditor();
@@ -860,9 +842,7 @@
             const saved = person
                 ? this.kidSettingsForPerson(person.id)
                 : null;
-            const pin = this.draftKidPin ||
-                (person ? this.cachedKidPin(person.id) : "") ||
-                "";
+            const pin = this.draftKidPin || "";
             const theme = saved?.theme ||
                 this.draftKidTheme ||
                 "";
@@ -870,8 +850,6 @@
                 "";
             this.draftKidTheme =
                 theme;
-            this.draftKidToken =
-                token;
             this.setValue("kidPinInput", pin);
             const pinInput = document.getElementById("kidPinInput");
             if (pinInput) {
@@ -974,60 +952,6 @@
                 .replace(/\D/g, "")
                 .slice(0, 4);
         },
-        kidPinSessionKey(personId) {
-            return `homeos_kid_pin:${this.householdId() || "home"}:${personId || "draft"}`;
-        },
-        cachedKidPin(personId) {
-            if (!personId)
-                return "";
-            const key = this.kidPinSessionKey(personId);
-            try {
-                const persistent = this.sanitizeKidPin(window.localStorage.getItem(key) || "");
-                if (persistent.length === 4) {
-                    return persistent;
-                }
-                // Migrate a PIN created by the earlier session-only version.
-                const sessionPin = this.sanitizeKidPin(window.sessionStorage.getItem(key) || "");
-                if (sessionPin.length === 4) {
-                    window.localStorage.setItem(key, sessionPin);
-                    return sessionPin;
-                }
-            }
-            catch (error) {
-                console.warn("[HOME OS] Kids PIN could not be read from this browser.", error);
-            }
-            return "";
-        },
-        rememberKidPin(personId, pin) {
-            const safe = this.sanitizeKidPin(pin);
-            if (!personId || safe.length !== 4)
-                return;
-            const key = this.kidPinSessionKey(personId);
-            try {
-                // Keep a browser copy so the Owner/Admin can reveal the PIN
-                // with the eye button after a page refresh. Supabase still keeps
-                // the server-side login copy protected through the Kids Mode RPC.
-                window.localStorage.setItem(key, safe);
-                window.sessionStorage.setItem(key, safe);
-            }
-            catch (error) {
-                console.warn("[HOME OS] Kids PIN could not be remembered on this browser.", error);
-            }
-        },
-        clearKidPinSessionCache() {
-            const prefix = `homeos_kid_pin:${this.householdId() || "home"}:`;
-            try {
-                for (let index = window.sessionStorage.length - 1; index >= 0; index -= 1) {
-                    const key = window.sessionStorage.key(index);
-                    if (key?.startsWith(prefix)) {
-                        window.sessionStorage.removeItem(key);
-                    }
-                }
-            }
-            catch (error) {
-                console.warn("[HOME OS] Kids PIN session cache could not be cleared.", error);
-            }
-        },
         async savePerson(event) {
             event.preventDefault();
             if (!this.requireAdmin()) {
@@ -1065,7 +989,7 @@
                 null;
             const button = event.submitter;
             await this.withBusy(button, async () => {
-                const { error } = await this.supabase
+                const { data: savedPersonId, error } = await this.supabase
                     .rpc("homeos_save_person", {
                     p_person_id: existingId,
                     p_display_name: displayName,
@@ -1083,24 +1007,10 @@
                     throw error;
                 }
                 await this.loadPeople();
-                const saved = existingId
-                    ? this.people.find(person => person.id ===
-                        existingId)
-                    : this.people
-                        .filter(person => person.display_name ===
-                        displayName &&
-                        this.isChildPerson(person) ===
-                            (mode ===
-                                "child"))
-                        .sort((a, b) => new Date(b.created_at ||
-                        0) -
-                        new Date(a.created_at ||
-                            0))[0] ||
-                        null;
                 this.selectedPersonId =
-                    saved?.id ||
-                        existingId ||
-                        null;
+                    savedPersonId ||
+                    existingId ||
+                    null;
                 this.selectedPersonMode =
                     mode;
                 let kidAccessSaved = true;
@@ -1274,15 +1184,9 @@
             this.draftKidPin =
                 pin ||
                     this.draftKidPin;
-            if (pin) {
-                this.rememberKidPin(personId, pin);
-            }
             this.draftKidTheme =
                 savedProfile.theme ||
                     theme;
-            this.draftKidToken =
-                this.kidsAdmin?.portal_token ||
-                    "";
             this.renderPeople();
             this.renderChildAccess();
             if (!quiet) {
@@ -1298,9 +1202,6 @@
         generateNewKidPin() {
             this.draftKidPin =
                 this.generateKidPin();
-            if (this.selectedPersonId) {
-                this.rememberKidPin(this.selectedPersonId, this.draftKidPin);
-            }
             this.setValue("kidPinInput", this.draftKidPin);
             this.notify("New PIN generated. Click Save Child to activate the new PIN.", {
                 tone: "attention",

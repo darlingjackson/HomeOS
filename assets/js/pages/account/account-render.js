@@ -212,7 +212,6 @@
                 const { error } = await window.HomeOS.auth.signOut();
                 if (error)
                     throw error;
-                this.clearKidPinSessionCache();
                 window.location.replace(window.HomeOS.auth.pageUrl(window.HomeOS.config?.routes?.login || "login.html"));
             }, "Signing out…").catch(error => this.handleError("We could not sign you out.", error));
         },

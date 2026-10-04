@@ -30,7 +30,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         selectedPersonMode: "adult",
         draftKidPin: "",
         draftKidTheme: "",
-        draftKidToken: "",
         kidMissionEditorPersonId: null,
         kidMissionEditorState: null,
         kidMissionEditorPendingTaskId: null,
@@ -44,6 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         taskLivePollTimer: null,
         taskLiveRefreshTimer: null,
         taskLiveListenersBound: false,
+        pendingActions: new Set(),
         validTabs: new Set(["profile", "household", "people", "tasks", "home", "session"]),
         validHomeTabs: new Set(["layout", "zones", "inventory", "laundry", "care"]),
         get supabase() {
@@ -104,6 +104,30 @@ document.addEventListener("DOMContentLoaded", async () => {
             finally {
                 button.disabled = false;
                 button.textContent = original;
+            }
+        },
+        async runAccountMutation(key, work) {
+            const mutationKey = String(key || "account");
+
+            if (this.pendingActions.has(mutationKey)) {
+                return null;
+            }
+
+            this.pendingActions.add(mutationKey);
+
+            try {
+                return await work();
+            }
+            catch (error) {
+                console.error("[HOME OS] Account update failed.", error);
+                this.notify(error?.message || "HOME OS could not save that change.", {
+                    tone: "attention",
+                    title: "Save failed"
+                });
+                return null;
+            }
+            finally {
+                this.pendingActions.delete(mutationKey);
             }
         },
     };

@@ -211,7 +211,11 @@
                 nameInput.focus();
             });
         },
-        saveItem() {
+        async saveItem() {
+            if (this.itemSaveInFlight) {
+                return false;
+            }
+
             const idInput = document.getElementById("inventoryItemId");
             const nameInput = document.getElementById("inventoryNameInput");
             const zoneInput = document.getElementById("inventoryZoneInput");
@@ -219,112 +223,151 @@
             const targetInput = document.getElementById("inventoryTargetInput");
             const unitInput = document.getElementById("inventoryUnitInput");
             const categoryInput = document.getElementById("inventoryCategoryInput");
-            if (!idInput ||
+
+            if (
+                !idInput ||
                 !nameInput ||
                 !zoneInput ||
                 !currentInput ||
                 !targetInput ||
                 !unitInput ||
-                !categoryInput) {
+                !categoryInput
+            ) {
                 return false;
             }
+
             const id = idInput.value;
-            const name = nameInput.value
-                .trim();
+            const name = nameInput.value.trim();
             const zoneId = zoneInput.value;
-            const current = Math.max(0, Number(currentInput.value) ||
-                0);
-            const target = Math.max(1, Number(targetInput.value) ||
-                1);
+            const current = Math.max(0, Number(currentInput.value) || 0);
+            const target = Math.max(1, Number(targetInput.value) || 1);
             const unit = this.getDialogUnitValue();
             const category = this.getDialogCategoryValue();
+
             if (!name) {
                 HomeApp.toast("Give the inventory item a name first.");
                 nameInput.focus();
                 return false;
             }
-            if (!this.ZONES.some(zone => zone.id ===
-                zoneId)) {
+
+            if (!this.ZONES.some(zone => zone.id === zoneId)) {
                 HomeApp.toast("Choose a valid storage zone.");
                 return false;
             }
-            const duplicate = HomeStore.getState()
-                .inventory
-                .items
-                .find(item => item.id !==
-                id &&
-                item.zoneId ===
-                    zoneId &&
-                String(item.name ||
-                    "")
-                    .trim()
-                    .toLowerCase() ===
-                    name
-                        .toLowerCase());
-            if (duplicate) {
-                HomeApp.toast(`${name} is already tracked in this storage zone.`);
-                nameInput.focus();
-                return false;
-            }
-            this.selectedZone =
-                zoneId;
-            this.searchTerm =
-                "";
-            const search = document.getElementById("inventorySearch");
-            if (search) {
-                search.value =
-                    "";
-            }
-            HomeStore.update(state => {
-                if (id) {
-                    const item = state.inventory
-                        .items
-                        .find(value => value.id ===
-                        id);
-                    if (item) {
-                        item.name =
-                            name;
-                        item.zoneId =
-                            zoneId;
-                        item.current =
-                            current;
-                        item.target =
-                            target;
-                        item.unit =
-                            unit;
-                        item.category =
-                            category;
-                        item.updatedAt =
-                            new Date()
-                                .toISOString();
+
+            this.itemSaveInFlight = true;
+
+            try {
+                let duplicateFound = false;
+                let missingItem = false;
+                const itemId = id || this.makeId("inventory");
+                const now = new Date().toISOString();
+
+                const result = await this.commitDatabaseChange(state => {
+                    const duplicate = state.inventory.items.find(
+                        item =>
+                            item.id !== id &&
+                            item.zoneId === zoneId &&
+                            String(item.name || "")
+                                .trim()
+                                .toLowerCase() === name.toLowerCase()
+                    );
+
+                    if (duplicate) {
+                        duplicateFound = true;
+                        return false;
                     }
+
+                    if (id) {
+                        const item = state.inventory.items.find(
+                            value => value.id === id
+                        );
+
+                        if (!item) {
+                            missingItem = true;
+                            return false;
+                        }
+
+                        Object.assign(item, {
+                            name,
+                            zoneId,
+                            current,
+                            target,
+                            unit,
+                            category,
+                            updatedAt: now
+                        });
+                    } else {
+                        state.inventory.items.push({
+                            id: itemId,
+                            zoneId,
+                            name,
+                            category,
+                            current,
+                            target,
+                            unit,
+                            expiresOn: null,
+                            notes: "",
+                            createdAt: now,
+                            updatedAt: now
+                        });
+                    }
+
+                    state.inventory.selectedZone = zoneId;
+                    return true;
+                });
+
+                if (!result.changed) {
+                    if (duplicateFound) {
+                        HomeApp.toast(
+                            `${name} is already tracked in this storage zone.`
+                        );
+                        nameInput.focus();
+                    } else if (missingItem) {
+                        HomeApp.toast(
+                            "That inventory item no longer exists. Refresh and try again."
+                        );
+                    }
+
+                    return false;
                 }
-                else {
-                    state.inventory
-                        .items
-                        .push({
-                        id: this.makeId("inventory"),
-                        zoneId,
-                        name,
-                        category,
-                        current,
-                        target,
-                        unit,
-                        createdAt: new Date()
-                            .toISOString(),
-                        updatedAt: new Date()
-                            .toISOString()
-                    });
+
+                this.selectedZone = zoneId;
+                this.searchTerm = "";
+
+                const search = document.getElementById("inventorySearch");
+                if (search) {
+                    search.value = "";
                 }
-                state.inventory
-                    .selectedZone =
-                    zoneId;
-                this.syncDerivedState(state);
-            });
-            HomeApp.toast(id
-                ? `${name} updated.`
-                : `${name} added to Home Inventory.`);
-            return true;
+
+                this.setText("inventoryDialogFeedback", "");
+
+                HomeApp.toast(
+                    id
+                        ? `${name} updated.`
+                        : `${name} added to Home Inventory.`
+                );
+
+                return true;
+            } catch (error) {
+                console.error(
+                    "[HomeOS] Inventory item save failed.",
+                    error
+                );
+
+                this.setText(
+                    "inventoryDialogFeedback",
+                    "HomeOS couldn't save this item. Please try again."
+                );
+
+                HomeApp.toast(
+                    "Couldn't save this inventory item. Nothing was saved."
+                );
+
+                return false;
+            } finally {
+                this.itemSaveInFlight = false;
+            }
         },
         prepareNextInventoryItem(savedName = "") {
             const idInput = document.getElementById("inventoryItemId");
@@ -355,53 +398,62 @@
                 nameInput?.focus();
             });
         },
-        addItemAndContinue() {
+        async addItemAndContinue() {
             const nameInput = document.getElementById("inventoryNameInput");
-            const savedName = String(nameInput?.value ||
-                "")
-                .trim();
-            if (!this.saveItem()) {
+            const savedName = String(nameInput?.value || "").trim();
+
+            if (!await this.saveItem()) {
                 return;
             }
+
             this.prepareNextInventoryItem(savedName);
         },
-        deleteItem(itemId) {
-            const state = HomeStore.getState();
-            const item = state.inventory
-                .items
-                .find(value => value.id ===
-                itemId);
+        async deleteItem(itemId) {
+            const current = HomeStore.getState();
+            const item = current.inventory.items.find(
+                value => value.id === itemId
+            );
+
             if (!item) {
                 return;
             }
+
             if (!window.confirm(`Delete ${item.name} from Home Inventory?`)) {
                 return;
             }
-            HomeStore.update(store => {
-                store.inventory.items =
-                    store.inventory
-                        .items
-                        .filter(value => value.id !==
-                        itemId);
-                this.syncDerivedState(store);
-                store.activity =
-                    Array.isArray(store.activity)
-                        ? store.activity
-                        : [];
-                store.activity
-                    .unshift({
-                    id: this.makeId("activity"),
-                    type: "inventory",
-                    title: `${item.name} removed from inventory`,
-                    description: "A tracked Home Inventory item was removed.",
-                    createdAt: new Date()
-                        .toISOString()
+
+            try {
+                let removed = false;
+
+                const result = await this.commitDatabaseChange(state => {
+                    const exists = state.inventory.items.some(
+                        value => value.id === itemId
+                    );
+
+                    if (!exists) {
+                        return false;
+                    }
+
+                    state.inventory.items =
+                        state.inventory.items.filter(
+                            value => value.id !== itemId
+                        );
+
+                    removed = true;
+                    return true;
                 });
-                store.activity =
-                    store.activity
-                        .slice(0, 200);
-            });
-            HomeApp.toast(`${item.name} removed from Home Inventory.`);
+
+                if (result.changed && removed) {
+                    HomeApp.toast(
+                        `${item.name} removed from Home Inventory.`
+                    );
+                }
+            } catch (error) {
+                this.handlePersistenceError(
+                    `remove ${item.name} from Inventory`,
+                    error
+                );
+            }
         },
         // --- Health Math ---
         calculateZoneHealth(items) {

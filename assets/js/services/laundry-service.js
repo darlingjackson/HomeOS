@@ -1,45 +1,59 @@
 /* ============================================================
    HOMEOS // LAUNDRY SERVICE
 
-   Laundry settings, loads and history storage.
+   Laundry areas, active loads, timers and history.
 ============================================================ */
 
-(function () {
+(function createHomeOSLaundryService() {
     "use strict";
+
     window.HomeOS = window.HomeOS || {};
     window.HomeOS.services = window.HomeOS.services || {};
-    const db = () => {
-        if (!window.HomeOS.supabase) {
+
+    function client() {
+        const supabase = window.HomeOS.supabase;
+
+        if (!supabase) {
             throw new Error("HomeOS Supabase client is not ready.");
         }
-        return window.HomeOS.supabase;
-    };
+
+        return supabase;
+    }
+
     async function load(householdId) {
         const [areas, loads, people] = await Promise.all([
-            db()
+            client()
                 .from("laundry_areas")
                 .select("*")
                 .eq("household_id", householdId)
                 .eq("active", true)
                 .order("sort_order")
                 .order("name"),
-            db()
+
+            client()
                 .from("laundry_loads")
                 .select("*")
                 .eq("household_id", householdId)
                 .order("created_at", { ascending: false })
                 .limit(500),
-            db()
+
+            client()
                 .from("family_members")
-                .select("id,household_id,display_name,member_type,relationship_label,auth_user_id,can_be_assigned,active,color,sort_order")
+                .select(
+                    "id,household_id,display_name,member_type,relationship_label,auth_user_id,can_be_assigned,active,color,sort_order"
+                )
                 .eq("household_id", householdId)
                 .eq("active", true)
                 .order("sort_order")
                 .order("display_name")
         ]);
-        const error = [areas, loads, people].find(x => x.error)?.error || null;
-        if (error)
+
+        const error = [areas, loads, people].find(result => result.error)?.error || null;
+
+        if (error) {
             return { data: null, error };
+        }
+
         return {
             data: {
                 areas: areas.data || [],
@@ -49,26 +63,47 @@
             error: null
         };
     }
-    async function startLoad({ name, laundryAreaId = null, assignedFamilyMemberId = null, categoryKey = null, laundrySystem = "color", washMinutes = 45, dryMinutes = 60 }) {
-        const { data: loadId, error } = await db().rpc("homeos_start_laundry_load", {
-            p_name: name,
-            p_laundry_area_id: laundryAreaId,
-            p_assigned_family_member_id: assignedFamilyMemberId,
-            p_schedule_task_id: null
-        });
-        if (error || !loadId)
+
+    async function startLoad({
+        name,
+        laundryAreaId = null,
+        assignedFamilyMemberId = null,
+        categoryKey = null,
+        laundrySystem = "color",
+        washMinutes = 45,
+        dryMinutes = 60
+    }) {
+        const { data: loadId, error } = await client().rpc(
+            "homeos_start_laundry_load",
+            {
+                p_name: name,
+                p_laundry_area_id: laundryAreaId,
+                p_assigned_family_member_id: assignedFamilyMemberId,
+                p_schedule_task_id: null
+            }
+        );
+
+        if (error || !loadId) {
             return { data: null, error };
+        }
+
         const now = new Date();
         const safeWash = Math.max(1, Number(washMinutes) || 45);
         const safeDry = Math.max(1, Number(dryMinutes) || 60);
-        const timerEnds = new Date(now.getTime() + safeWash * 60000).toISOString();
-        const current = await db()
+        const timerEnds = new Date(
+            now.getTime() + safeWash * 60000
+        ).toISOString();
+
+        const current = await client()
             .from("laundry_loads")
             .select("*")
             .eq("id", loadId)
             .single();
-        if (current.error)
+
+        if (current.error) {
             return { data: null, error: current.error };
+        }
+
         const metadata = {
             ...(current.data?.metadata || {}),
             source: "laundry_v1",
@@ -79,15 +114,27 @@
             category_key: categoryKey || null,
             laundry_system: laundrySystem || "color"
         };
-        const updated = await db()
+
+        const updated = await client()
             .from("laundry_loads")
             .update({ metadata })
             .eq("id", loadId)
             .select("*")
             .single();
-        return { data: updated.data || current.data, error: updated.error || null };
+
+        return {
+            data: updated.data || current.data,
+            error: updated.error || null
+        };
     }
-    async function markCategoryCompleted({ name, laundryAreaId = null, assignedFamilyMemberId = null, categoryKey = null, laundrySystem = "color" }) {
+
+    async function markCategoryCompleted({
+        name,
+        laundryAreaId = null,
+        assignedFamilyMemberId = null,
+        categoryKey = null,
+        laundrySystem = "color"
+    }) {
         const started = await startLoad({
             name,
             laundryAreaId,
@@ -97,114 +144,162 @@
             washMinutes: 1,
             dryMinutes: 1
         });
+
         if (started.error || !started.data?.id) {
             return started;
         }
+
         const loadId = started.data.id;
         let row = started.data;
         let guard = 0;
+
         while (row?.stage !== "complete" && guard < 6) {
-            const moved = await db().rpc("homeos_advance_laundry_load", {
+            const moved = await client().rpc("homeos_advance_laundry_load", {
                 p_load_id: loadId
             });
+
             if (moved.error) {
                 return { data: null, error: moved.error };
             }
-            const current = await db()
+
+            const current = await client()
                 .from("laundry_loads")
                 .select("*")
                 .eq("id", loadId)
                 .single();
+
             if (current.error) {
                 return { data: null, error: current.error };
             }
+
             row = current.data;
             guard += 1;
         }
+
         const metadata = {
             ...(row?.metadata || {}),
             source: "laundry_v2_quick_checkoff",
             quick_checkoff: true,
             category_key: categoryKey || row?.metadata?.category_key || null,
-            laundry_system: laundrySystem || row?.metadata?.laundry_system || "color",
+            laundry_system:
+                laundrySystem || row?.metadata?.laundry_system || "color",
             stage_updated_at: new Date().toISOString()
         };
+
         delete metadata.timer_ends_at;
-        const updated = await db()
+
+        const updated = await client()
             .from("laundry_loads")
             .update({ metadata })
             .eq("id", loadId)
             .select("*")
             .single();
+
         return {
             data: updated.data || row,
             error: updated.error || null
         };
     }
+
     async function advanceLoad(loadId) {
-        const advanced = await db().rpc("homeos_advance_laundry_load", {
+        const advanced = await client().rpc("homeos_advance_laundry_load", {
             p_load_id: loadId
         });
-        if (advanced.error)
+
+        if (advanced.error) {
             return { data: null, error: advanced.error };
-        const current = await db()
+        }
+
+        const current = await client()
             .from("laundry_loads")
             .select("*")
             .eq("id", loadId)
             .single();
-        if (current.error)
+
+        if (current.error) {
             return { data: null, error: current.error };
+        }
+
         const now = new Date();
         const row = current.data;
         const metadata = {
             ...(row.metadata || {}),
             stage_updated_at: now.toISOString()
         };
+
         if (row.stage === "drying") {
-            const dryMinutes = Math.max(1, Number(metadata.dry_minutes) || 60);
-            metadata.timer_ends_at = new Date(now.getTime() + dryMinutes * 60000).toISOString();
-        }
-        else {
+            const dryMinutes = Math.max(
+                1,
+                Number(metadata.dry_minutes) || 60
+            );
+
+            metadata.timer_ends_at = new Date(
+                now.getTime() + dryMinutes * 60000
+            ).toISOString();
+        } else {
             delete metadata.timer_ends_at;
         }
-        const updated = await db()
+
+        const updated = await client()
             .from("laundry_loads")
             .update({ metadata })
             .eq("id", loadId)
             .select("*")
             .single();
-        return { data: updated.data || row, error: updated.error || null };
+
+        return {
+            data: updated.data || row,
+            error: updated.error || null
+        };
     }
+
     async function extendTimer(loadId, minutes) {
-        const current = await db()
+        const current = await client()
             .from("laundry_loads")
             .select("*")
             .eq("id", loadId)
             .single();
-        if (current.error)
+
+        if (current.error) {
             return { data: null, error: current.error };
+        }
+
         const row = current.data;
         const metadata = { ...(row.metadata || {}) };
-        const base = metadata.timer_ends_at ? new Date(metadata.timer_ends_at) : new Date();
+        const base = metadata.timer_ends_at
+            ? new Date(metadata.timer_ends_at)
+            : new Date();
+
         const safeBase = Number.isNaN(base.getTime()) ? new Date() : base;
-        metadata.timer_ends_at = new Date(safeBase.getTime() + (Number(minutes) || 0) * 60000).toISOString();
-        const updated = await db()
+
+        metadata.timer_ends_at = new Date(
+            safeBase.getTime() + (Number(minutes) || 0) * 60000
+        ).toISOString();
+
+        const updated = await client()
             .from("laundry_loads")
             .update({ metadata })
             .eq("id", loadId)
             .select("*")
             .single();
-        return { data: updated.data, error: updated.error || null };
+
+        return {
+            data: updated.data,
+            error: updated.error || null
+        };
     }
+
     async function removeLoad(householdId, loadId) {
-        const { error } = await db()
+        const { error } = await client()
             .from("laundry_loads")
             .delete()
             .eq("household_id", householdId)
             .eq("id", loadId)
             .neq("stage", "complete");
+
         return { error };
     }
+
     window.HomeOS.services.laundry = {
         load,
         startLoad,

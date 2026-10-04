@@ -55,6 +55,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         buddyPersonId: null,
         shortcutKidId: "",
         alienBlinkTimer: null,
+        pendingActions: new Set(),
+        async runMutation(key, work) {
+            const mutationKey = String(key || "kids");
+
+            if (this.pendingActions.has(mutationKey)) {
+                return;
+            }
+
+            this.pendingActions.add(mutationKey);
+
+            try {
+                return await work();
+            } catch (error) {
+                console.error("[HomeOS] Kids Mode update failed.", error);
+                this.toast(
+                    error?.message || "HomeOS couldn't save that mission change."
+                );
+            } finally {
+                this.pendingActions.delete(mutationKey);
+            }
+        },
         async init() {
             if (!service) {
                 return;
@@ -81,46 +102,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
             this.portalToken =
                 explicitPortal ||
-                    signedInPortal ||
-                    String(localStorage.getItem("homeos_kids_portal") ||
-                        "").trim();
+                signedInPortal;
+
             if (!this.portalToken) {
                 this.showMissing();
                 return;
             }
-            localStorage
-                .setItem("homeos_kids_portal", this.portalToken);
-            const savedSession = sessionStorage
-                .getItem("homeos_kids_session") ||
-                "";
-            if (savedSession) {
-                const restored = await service
-                    .getSession(savedSession);
-                if (!restored.error &&
-                    restored.data) {
-                    const restoredPersonId = this.sessionPersonId(restored.data);
-                    if (this.shortcutKidId &&
-                        restoredPersonId &&
-                        restoredPersonId !== this.shortcutKidId) {
-                        await service.logout(savedSession);
-                        sessionStorage.removeItem("homeos_kids_session");
-                    }
-                    else {
-                        this.sessionToken =
-                            savedSession;
-                        this.session =
-                            restored.data;
-                        this.applyTheme(restored.data
-                            .theme ||
-                            "girl");
-                        await this.loadTasks();
-                        this.showDashboard();
-                        return;
-                    }
-                }
-                sessionStorage
-                    .removeItem("homeos_kids_session");
-            }
+
+            this.syncPortalNavigation();
             await this.loadProfiles();
         },
         async loadProfiles() {
@@ -156,6 +145,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 snapshot?.person?.id ||
                 snapshot?.id ||
                 "").trim();
+        },
+        syncPortalNavigation() {
+            const brand = document.querySelector(".kids-brand");
+
+            if (!brand) {
+                return;
+            }
+
+            const url = new URL(window.location.href);
+            url.searchParams.delete("kid");
+            brand.href = `${url.pathname}${url.search}`;
         },
         clearShortcutFromUrl() {
             this.shortcutKidId = "";
@@ -337,8 +337,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             this.sessionToken =
                 result.data
                     .session_token;
-            sessionStorage
-                .setItem("homeos_kids_session", this.sessionToken);
             this.session = {
                 ...result.data
                     .person,
@@ -1200,8 +1198,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 null;
             this.tasks =
                 [];
-            sessionStorage
-                .removeItem("homeos_kids_session");
             if (token) {
                 await service
                     .logout(token);
@@ -1505,85 +1501,103 @@ document.addEventListener("DOMContentLoaded", async () => {
         },
         bind() {
             document
-                .addEventListener("keydown", event => {
-                const backdrop = document.getElementById("kidsPinBackdrop");
-                if (!backdrop ||
-                    backdrop.hidden) {
-                    return;
-                }
-                if (/^[0-9]$/.test(event.key)) {
-                    event.preventDefault();
-                    return this.pinKey(event.key);
-                }
-                if (event.key === "Backspace") {
-                    event.preventDefault();
-                    return this.pinBack();
-                }
-                if (event.key === "Escape") {
-                    event.preventDefault();
-                    return this.closePin();
-                }
-                if (event.key === "Enter" &&
-                    this.pin.length === 4) {
-                    event.preventDefault();
-                    return this.unlock();
-                }
-            });
+                .addEventListener("keydown", async event => {
+                    const backdrop = document.getElementById("kidsPinBackdrop");
+
+                    if (!backdrop || backdrop.hidden) {
+                        return;
+                    }
+
+                    if (/^[0-9]$/.test(event.key)) {
+                        event.preventDefault();
+                        this.pinKey(event.key);
+                        return;
+                    }
+
+                    if (event.key === "Backspace") {
+                        event.preventDefault();
+                        this.pinBack();
+                        return;
+                    }
+
+                    if (event.key === "Escape") {
+                        event.preventDefault();
+                        this.closePin();
+                        return;
+                    }
+
+                    if (event.key === "Enter" && this.pin.length === 4) {
+                        event.preventDefault();
+                        await this.runMutation("unlock", () => this.unlock());
+                    }
+                });
+
             document
-                .addEventListener("click", event => {
-                const profile = event.target
-                    .closest("[data-kid-profile]");
-                if (profile) {
-                    return this.openPin(profile.dataset
-                        .kidProfile);
-                }
-                const key = event.target
-                    .closest("[data-pin-key]");
-                if (key) {
-                    return this.pinKey(key.dataset
-                        .pinKey);
-                }
-                if (event.target
-                    .closest("[data-pin-back]")) {
-                    return this.pinBack();
-                }
-                if (event.target
-                    .closest("[data-pin-clear]")) {
-                    return this.pinClear();
-                }
-                if (event.target
-                    .closest("#closeKidsPin")) {
-                    return this.closePin();
-                }
-                if (event.target
-                    .closest("#kidsUnlockButton")) {
-                    return this.unlock();
-                }
-                const task = event.target
-                    .closest("[data-kid-occurrence]");
-                if (task) {
-                    return this.toggleTask(task.dataset
-                        .kidOccurrence, task.dataset
-                        .complete ===
-                        "true", task.dataset
-                        .taskEngine ||
-                        "kid");
-                }
-                const theme = event.target
-                    .closest(".kids-theme-switch [data-kids-theme]");
-                if (theme) {
-                    return this.applyTheme(theme.dataset
-                        .kidsTheme);
-                }
-                if (event.target
-                    .closest("#switchKidButton")) {
-                    return this.switchExplorer();
-                }
-                if (event.target
-                    .closest("#grownupLoginButton")) {
-                    return this.grownupLogin();
-                }
-            });
+                .addEventListener("click", async event => {
+                    const profile = event.target
+                        .closest("[data-kid-profile]");
+
+                    if (profile) {
+                        this.openPin(profile.dataset.kidProfile);
+                        return;
+                    }
+
+                    const key = event.target.closest("[data-pin-key]");
+                    if (key) {
+                        this.pinKey(key.dataset.pinKey);
+                        return;
+                    }
+
+                    if (event.target.closest("[data-pin-back]")) {
+                        this.pinBack();
+                        return;
+                    }
+
+                    if (event.target.closest("[data-pin-clear]")) {
+                        this.pinClear();
+                        return;
+                    }
+
+                    if (event.target.closest("#closeKidsPin")) {
+                        this.closePin();
+                        return;
+                    }
+
+                    if (event.target.closest("#kidsUnlockButton")) {
+                        await this.runMutation("unlock", () => this.unlock());
+                        return;
+                    }
+
+                    const task = event.target.closest("[data-kid-occurrence]");
+                    if (task) {
+                        await this.runMutation(
+                            `mission:${task.dataset.kidOccurrence}`,
+                            () => this.toggleTask(
+                                task.dataset.kidOccurrence,
+                                task.dataset.complete === "true",
+                                task.dataset.taskEngine || "kid"
+                            )
+                        );
+                        return;
+                    }
+
+                    const theme = event.target
+                        .closest(".kids-theme-switch [data-kids-theme]");
+
+                    if (theme) {
+                        this.applyTheme(theme.dataset.kidsTheme);
+                        return;
+                    }
+
+                    if (event.target.closest("#switchKidButton")) {
+                        await this.runMutation("switch-explorer", () => this.switchExplorer());
+                        return;
+                    }
+
+                    if (event.target.closest("#grownupLoginButton")) {
+                        await this.runMutation("grownup-login", () => this.grownupLogin());
+                    }
+                });
         },
         ageBand(displayMode = "picture_text") {
             const effective = String(this.session

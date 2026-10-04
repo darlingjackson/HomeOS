@@ -15,6 +15,60 @@
         }
         return window.HomeOS.supabase;
     }
+
+    function currentHouseholdId() {
+        return window.HomeOS.session?.getState?.().household?.id || null;
+    }
+
+    function resolveHouseholdId(requestedId = null) {
+        const activeId = currentHouseholdId();
+
+        if (!activeId) {
+            return {
+                householdId: null,
+                error: new Error("HomeOS household context is required for Calendar data.")
+            };
+        }
+
+        if (requestedId && String(requestedId) !== String(activeId)) {
+            return {
+                householdId: null,
+                error: new Error("Calendar household does not match the signed-in household.")
+            };
+        }
+
+        return {
+            householdId: activeId,
+            error: null
+        };
+    }
+
+    async function validateFamilyMember(householdId, familyMemberId) {
+        if (!familyMemberId) {
+            return { valid: true, error: null };
+        }
+
+        const { data, error } = await client()
+            .from("family_members")
+            .select("id")
+            .eq("household_id", householdId)
+            .eq("id", familyMemberId)
+            .eq("active", true)
+            .maybeSingle();
+
+        if (error) {
+            return { valid: false, error };
+        }
+
+        if (!data?.id) {
+            return {
+                valid: false,
+                error: new Error("That calendar person is not part of the current household.")
+            };
+        }
+
+        return { valid: true, error: null };
+    }
     function dateKey(date) {
         return [
             date.getFullYear(),
@@ -490,6 +544,25 @@
         });
     }
     async function getCalendarRange(householdId, rangeStart, rangeEnd, personId = null) {
+        const resolved = resolveHouseholdId(householdId);
+
+        if (resolved.error) {
+            return {
+                data: {
+                    events: [],
+                    people: [],
+                    seasonal: null,
+                    rhythm: null,
+                    cleaning: null
+                },
+                errors: [resolved.error],
+                seasonalError: null,
+                manualTableUnavailable: false
+            };
+        }
+
+        householdId = resolved.householdId;
+
         const [manualResult, peopleResult, birthdayProfilesResult, seasonalResult, homeHealthResult] = await Promise.all([
             getManualEvents(householdId),
             getPeople(householdId),
@@ -542,9 +615,59 @@
         };
     }
     async function saveManualEvent(event) {
+        const resolved = resolveHouseholdId(event.householdId);
+
+        if (resolved.error) {
+            return {
+                data: null,
+                error: resolved.error
+            };
+        }
+
+        const householdId = resolved.householdId;
+        const title = String(event.title || "").trim();
+
+        if (!title) {
+            return {
+                data: null,
+                error: new Error("Calendar event title is required.")
+            };
+        }
+
+        const start = new Date(event.startsAt);
+        if (Number.isNaN(start.getTime())) {
+            return {
+                data: null,
+                error: new Error("Calendar event start time is invalid.")
+            };
+        }
+
+        if (
+            event.recurrenceRule &&
+            event.recurrenceEndDate &&
+            String(event.recurrenceEndDate) < dateKey(start)
+        ) {
+            return {
+                data: null,
+                error: new Error("Repeat until cannot be before the event date.")
+            };
+        }
+
+        const personCheck = await validateFamilyMember(
+            householdId,
+            event.familyMemberId || null
+        );
+
+        if (!personCheck.valid) {
+            return {
+                data: null,
+                error: personCheck.error
+            };
+        }
+
         const payload = {
-            household_id: event.householdId,
-            title: String(event.title || "").trim(),
+            household_id: householdId,
+            title,
             category: event.category || "family",
             starts_at: event.startsAt,
             ends_at: event.endsAt || null,
@@ -558,35 +681,83 @@
             active: true,
             updated_at: new Date().toISOString()
         };
+
         if (event.id) {
             const { data, error } = await client()
                 .from("home_calendar_events")
                 .update(payload)
+                .eq("household_id", householdId)
                 .eq("id", event.id)
                 .select("*")
                 .single();
+
             return { data, error };
         }
+
         const { data, error } = await client()
             .from("home_calendar_events")
             .insert(payload)
             .select("*")
             .single();
+
         return { data, error };
     }
     async function savePersonCalendarColor(householdId, familyMemberId, color) {
-        const { data, error } = await client().rpc("homeos_set_family_member_calendar_color", {
-            p_household_id: householdId,
-            p_family_member_id: familyMemberId,
-            p_color: color
-        });
+        const resolved = resolveHouseholdId(householdId);
+
+        if (resolved.error) {
+            return { data: null, error: resolved.error };
+        }
+
+        const validColor = /^#[0-9a-f]{6}$/i.test(String(color || "").trim())
+            ? String(color).trim()
+            : null;
+
+        if (!validColor) {
+            return {
+                data: null,
+                error: new Error("Choose a valid calendar color.")
+            };
+        }
+
+        const personCheck = await validateFamilyMember(
+            resolved.householdId,
+            familyMemberId
+        );
+
+        if (!personCheck.valid) {
+            return {
+                data: null,
+                error: personCheck.error
+            };
+        }
+
+        const { data, error } = await client().rpc(
+            "homeos_set_family_member_calendar_color",
+            {
+                p_household_id: resolved.householdId,
+                p_family_member_id: familyMemberId,
+                p_color: validColor
+            }
+        );
+
         return { data, error };
     }
     async function deleteManualEvent(eventId) {
+        const resolved = resolveHouseholdId();
+
+        if (resolved.error) {
+            return {
+                error: resolved.error
+            };
+        }
+
         const { error } = await client()
             .from("home_calendar_events")
             .delete()
+            .eq("household_id", resolved.householdId)
             .eq("id", eventId);
+
         return { error };
     }
     window.HomeOS.services.calendar = {

@@ -11,25 +11,31 @@
         window.HomeOS.inventoryPageModules || {};
     window.HomeOS.inventoryPageModules.shopping = {
         // --- Current Quantity + / ---
-        adjustItem(itemId, amount) {
-            HomeStore.update(state => {
-                const item = state.inventory
-                    .items
-                    .find(value => value.id ===
-                    itemId);
-                if (!item) {
-                    return;
-                }
-                item.current =
-                    Math.max(0, Number(item.current ||
-                        0) +
-                        Number(amount ||
-                            0));
-                item.updatedAt =
-                    new Date()
-                        .toISOString();
-                this.syncDerivedState(state);
-            });
+        async adjustItem(itemId, amount) {
+            try {
+                await this.commitDatabaseChange(state => {
+                    const item = state.inventory.items.find(
+                        value => value.id === itemId
+                    );
+
+                    if (!item) {
+                        return false;
+                    }
+
+                    item.current = Math.max(
+                        0,
+                        Number(item.current || 0) + Number(amount || 0)
+                    );
+
+                    item.updatedAt = new Date().toISOString();
+                    return true;
+                });
+            } catch (error) {
+                this.handlePersistenceError(
+                    "update the inventory quantity",
+                    error
+                );
+            }
         },
         // --- Shortages ---
         renderShortages(state) {
@@ -206,98 +212,127 @@
                 })
                     .join("");
         },
-        addShortage(itemId) {
+        async addShortage(itemId) {
             let itemName = "";
             let existed = false;
-            HomeStore.update(state => {
-                const item = state.inventory
-                    .items
-                    .find(value => value.id ===
-                    itemId);
-                if (!item) {
+
+            try {
+                const result = await this.commitDatabaseChange(state => {
+                    const item = state.inventory.items.find(
+                        value => value.id === itemId
+                    );
+
+                    if (!item) {
+                        return false;
+                    }
+
+                    const needed = Math.max(
+                        0,
+                        Number(item.target) - Number(item.current)
+                    );
+
+                    if (!needed) {
+                        return false;
+                    }
+
+                    itemName = item.name;
+
+                    const existing = state.inventory.shoppingList.find(
+                        entry =>
+                            entry.sourceType === "inventory" &&
+                            entry.inventoryItemId === item.id
+                    );
+
+                    if (existing) {
+                        existed = true;
+                        existing.name = item.name;
+                        existing.quantity = needed;
+                        existing.quantityMode = "needed";
+                        existing.unit = item.unit || "";
+                        existing.checked = false;
+                        return true;
+                    }
+
+                    state.inventory.shoppingList.push(
+                        this.createInventoryShoppingEntry(item)
+                    );
+
+                    return true;
+                });
+
+                if (!result.changed || !itemName) {
                     return;
                 }
-                const needed = Math.max(0, Number(item.target) -
-                    Number(item.current));
-                if (!needed) {
-                    return;
-                }
-                itemName =
-                    item.name;
-                const existing = state.inventory
-                    .shoppingList
-                    .find(entry => entry.sourceType ===
-                    "inventory" &&
-                    entry.inventoryItemId ===
-                        item.id);
-                if (existing) {
-                    existed =
-                        true;
-                    existing.name =
-                        item.name;
-                    existing.quantity =
-                        needed;
-                    existing.quantityMode =
-                        "needed";
-                    existing.unit =
-                        item.unit ||
-                            "";
-                    existing.checked =
-                        false;
-                    return;
-                }
-                state.inventory
-                    .shoppingList
-                    .push(this.createInventoryShoppingEntry(item));
-            });
-            if (itemName) {
-                HomeApp.toast(existed
-                    ? `${itemName} reset to the current shortage.`
-                    : `${itemName} added to the shopping list.`);
+
+                HomeApp.toast(
+                    existed
+                        ? `${itemName} reset to the current shortage.`
+                        : `${itemName} added to the shopping list.`
+                );
+            } catch (error) {
+                this.handlePersistenceError(
+                    "add the shortage to the shopping list",
+                    error
+                );
             }
         },
-        addAllShortages() {
+
+        async addAllShortages() {
             let added = 0;
             let refreshed = 0;
-            HomeStore.update(state => {
-                state.inventory
-                    .lowItems
-                    .forEach(lowItem => {
-                    const needed = Math.max(1, lowItem.target -
-                        lowItem.current);
-                    const existing = state.inventory
-                        .shoppingList
-                        .find(entry => entry.sourceType ===
-                        "inventory" &&
-                        entry.inventoryItemId ===
-                            lowItem.id);
-                    if (existing) {
-                        existing.quantity =
-                            needed;
-                        existing.quantityMode =
-                            "needed";
-                        existing.checked =
-                            false;
-                        refreshed +=
-                            1;
-                        return;
-                    }
-                    state.inventory
-                        .shoppingList
-                        .push(this.createInventoryShoppingEntry(lowItem));
-                    added +=
-                        1;
+
+            try {
+                const result = await this.commitDatabaseChange(state => {
+                    state.inventory.lowItems.forEach(lowItem => {
+                        const needed = Math.max(
+                            1,
+                            lowItem.target - lowItem.current
+                        );
+
+                        const existing =
+                            state.inventory.shoppingList.find(
+                                entry =>
+                                    entry.sourceType === "inventory" &&
+                                    entry.inventoryItemId === lowItem.id
+                            );
+
+                        if (existing) {
+                            existing.quantity = needed;
+                            existing.quantityMode = "needed";
+                            existing.checked = false;
+                            refreshed += 1;
+                            return;
+                        }
+
+                        state.inventory.shoppingList.push(
+                            this.createInventoryShoppingEntry(lowItem)
+                        );
+
+                        added += 1;
+                    });
+
+                    return added > 0 || refreshed > 0;
                 });
-            });
-            if (added) {
-                HomeApp.toast(`${added} shortage${added === 1 ? "" : "s"} added to the shopping list.`);
-                return;
-            }
-            if (refreshed) {
+
+                if (!result.changed) {
+                    HomeApp.toast("Nothing currently needs restocking.");
+                    return;
+                }
+
+                if (added) {
+                    HomeApp.toast(
+                        `${added} shortage${added === 1 ? "" : "s"} added to the shopping list.`
+                    );
+                    return;
+                }
+
                 HomeApp.toast("Your shortage quantities are up to date.");
-                return;
+            } catch (error) {
+                this.handlePersistenceError(
+                    "update the shortage list",
+                    error
+                );
             }
-            HomeApp.toast("Nothing currently needs restocking.");
         },
         createInventoryShoppingEntry(item) {
             const needed = Math.max(1, Number(item.target) -
@@ -376,114 +411,136 @@
             otherInput.disabled =
                 !isOther;
         },
-        addCustomShoppingItem() {
+        async addCustomShoppingItem() {
             const nameInput = document.getElementById("customShoppingName");
             const quantityInput = document.getElementById("customShoppingQty");
             const locationSelect = document.getElementById("customShoppingLocation");
-            const otherLocationInput = document.getElementById("customShoppingOtherLocation");
-            if (!nameInput ||
-                !quantityInput ||
-                !locationSelect) {
+            const otherLocationInput = document.getElementById(
+                "customShoppingOtherLocation"
+            );
+
+            if (!nameInput || !quantityInput || !locationSelect) {
                 return;
             }
-            const name = nameInput.value
-                .trim();
-            const quantity = Math.max(1, Number(quantityInput.value) ||
-                1);
-            const selectedLocationValue = String(locationSelect.value ||
-                "");
-            const isOtherLocation = selectedLocationValue ===
-                "__other__";
+
+            const name = nameInput.value.trim();
+            const quantity = Math.max(
+                1,
+                Number(quantityInput.value) || 1
+            );
+
+            const selectedLocationValue = String(
+                locationSelect.value || ""
+            );
+
+            const isOtherLocation =
+                selectedLocationValue === "__other__";
+
             const destinationZoneId = isOtherLocation
                 ? ""
                 : selectedLocationValue;
+
             const destinationZone = isOtherLocation
                 ? null
-                : this.ZONES.find(zone => String(zone.id) ===
-                    destinationZoneId);
+                : this.ZONES.find(
+                    zone =>
+                        String(zone.id) ===
+                        destinationZoneId
+                );
+
             const destinationLabel = isOtherLocation
-                ? String(otherLocationInput?.value ||
-                    "").trim() || "Other"
+                ? String(otherLocationInput?.value || "").trim() || "Other"
                 : "";
-            const destinationName = destinationZone?.name ||
-                destinationLabel;
+
+            const destinationName =
+                destinationZone?.name || destinationLabel;
+
             if (!name) {
                 HomeApp.toast("Type an item before adding it.");
                 nameInput.focus();
                 return;
             }
-            if (!isOtherLocation &&
-                !destinationZone) {
-                HomeApp.toast("Choose where this item should be stored.");
+
+            if (!isOtherLocation && !destinationZone) {
+                HomeApp.toast(
+                    "Choose where this item should be stored."
+                );
                 locationSelect.focus();
                 return;
             }
-            let merged = false;
-            HomeStore.update(state => {
-                const normalizedName = name
-                    .toLowerCase();
-                const normalizedDestinationLabel = destinationLabel
-                    .toLowerCase();
-                const existing = state.inventory
-                    .shoppingList
-                    .find(entry => entry.sourceType ===
-                    "custom" &&
-                    String(entry.name ||
-                        "")
-                        .trim()
-                        .toLowerCase() ===
-                        normalizedName &&
-                    String(entry.destinationZoneId ||
-                        "") ===
-                        destinationZoneId &&
-                    String(entry.destinationLabel ||
-                        "")
-                        .trim()
-                        .toLowerCase() ===
-                        normalizedDestinationLabel);
-                if (existing) {
-                    existing.quantity =
-                        Math.max(1, Number(existing.quantity) ||
-                            1) +
-                            quantity;
-                    existing.quantityMode =
-                        "manual";
-                    existing.checked =
-                        false;
-                    merged =
-                        true;
-                    return;
-                }
-                state.inventory
-                    .shoppingList
-                    .push({
-                    id: this.makeId("shopping-custom"),
-                    sourceType: "custom",
-                    origin: "inventory-custom",
-                    inventoryItemId: null,
-                    destinationZoneId,
-                    destinationLabel,
-                    name,
-                    quantity,
-                    quantityMode: "manual",
-                    unit: "",
-                    checked: false,
-                    addedAt: new Date()
-                        .toISOString()
+
+            try {
+                let merged = false;
+
+                await this.commitDatabaseChange(state => {
+                    const normalizedName = name.toLowerCase();
+                    const normalizedDestinationLabel =
+                        destinationLabel.toLowerCase();
+
+                    const existing =
+                        state.inventory.shoppingList.find(
+                            entry =>
+                                entry.sourceType === "custom" &&
+                                String(entry.name || "")
+                                    .trim()
+                                    .toLowerCase() === normalizedName &&
+                                String(entry.destinationZoneId || "") ===
+                                    destinationZoneId &&
+                                String(entry.destinationLabel || "")
+                                    .trim()
+                                    .toLowerCase() ===
+                                    normalizedDestinationLabel
+                        );
+
+                    if (existing) {
+                        existing.quantity =
+                            Math.max(
+                                1,
+                                Number(existing.quantity) || 1
+                            ) + quantity;
+
+                        existing.quantityMode = "manual";
+                        existing.checked = false;
+                        merged = true;
+                        return true;
+                    }
+
+                    state.inventory.shoppingList.push({
+                        id: this.makeId("shopping-custom"),
+                        sourceType: "custom",
+                        origin: "inventory-custom",
+                        inventoryItemId: null,
+                        destinationZoneId,
+                        destinationLabel,
+                        name,
+                        quantity,
+                        quantityMode: "manual",
+                        unit: "",
+                        checked: false,
+                        addedAt: new Date().toISOString()
+                    });
+
+                    return true;
                 });
-            });
-            nameInput.value =
-                "";
-            quantityInput.value =
-                1;
-            if (isOtherLocation &&
-                otherLocationInput) {
-                otherLocationInput.value =
-                    "";
+
+                nameInput.value = "";
+                quantityInput.value = 1;
+
+                if (isOtherLocation && otherLocationInput) {
+                    otherLocationInput.value = "";
+                }
+
+                HomeApp.toast(
+                    merged
+                        ? `${name} was already on the list for ${destinationName}, so HomeOS increased the quantity.`
+                        : `${name} added to the shopping list for ${destinationName}.`
+                );
+            } catch (error) {
+                this.handlePersistenceError(
+                    "add the shopping item",
+                    error
+                );
             }
-            HomeApp.toast(merged
-                ? `${name} was already on the list for ${destinationName}, so HomeOS increased the quantity.`
-                : `${name} added to the shopping list for ${destinationName}.`);
         },
         // --- Shopping List ---
         renderShoppingList(state) {
@@ -680,122 +737,175 @@
             return (zone?.name ||
                 "Home Inventory");
         },
-        adjustShoppingQuantity(entryId, amount) {
-            HomeStore.update(state => {
-                const entry = state.inventory
-                    .shoppingList
-                    .find(item => item.id ===
-                    entryId);
-                if (!entry) {
-                    return;
-                }
-                entry.quantity =
-                    Math.max(1, Number(entry.quantity ||
-                        1) +
-                        Number(amount ||
-                            0));
-                // A manual quantity override is intentional.
-                entry.quantityMode =
-                    "manual";
-            });
-        },
-        toggleShoppingCheck(entryId) {
-            HomeStore.update(state => {
-                const entry = state.inventory
-                    .shoppingList
-                    .find(item => item.id ===
-                    entryId);
-                if (!entry) {
-                    return;
-                }
-                entry.checked =
-                    !entry.checked;
-            });
-        },
-        // --- Mark Purchased ---
-        markPurchased() {
-            let purchasedCount = 0;
-            HomeStore.update(state => {
-                const purchased = state.inventory
-                    .shoppingList
-                    .filter(entry => entry.checked);
-                purchasedCount =
-                    purchased.length;
-                if (!purchasedCount) {
-                    return;
-                }
-                purchased
-                    .forEach(entry => {
-                    if (entry.sourceType !==
-                        "inventory") {
-                        return;
+        async adjustShoppingQuantity(entryId, amount) {
+            try {
+                await this.commitDatabaseChange(state => {
+                    const entry = state.inventory.shoppingList.find(
+                        item => item.id === entryId
+                    );
+
+                    if (!entry) {
+                        return false;
                     }
-                    const item = state.inventory
-                        .items
-                        .find(value => value.id ===
-                        entry.inventoryItemId);
-                    if (!item) {
-                        return;
-                    }
-                    item.current =
-                        Math.max(0, Number(item.current) ||
-                            0) +
-                            Math.max(1, Number(entry.quantity) ||
-                                1);
-                    item.updatedAt =
-                        new Date()
-                            .toISOString();
+
+                    entry.quantity = Math.max(
+                        1,
+                        Number(entry.quantity || 1) + Number(amount || 0)
+                    );
+
+                    entry.quantityMode = "manual";
+                    return true;
                 });
-                const purchasedIds = new Set(purchased.map(entry => entry.id));
-                state.inventory
-                    .shoppingList =
-                    state.inventory
-                        .shoppingList
-                        .filter(entry => !purchasedIds
-                        .has(entry.id));
-                this.syncDerivedState(state);
-                if (!Array.isArray(state.activity)) {
-                    state.activity =
-                        [];
-                }
-                state.activity
-                    .unshift({
-                    id: this.makeId("activity"),
-                    type: "inventory",
-                    title: `${purchasedCount} shopping item${purchasedCount === 1 ? "" : "s"} purchased`,
-                    description: "Home Inventory was updated from the shopping list.",
-                    createdAt: new Date()
-                        .toISOString()
-                });
-                state.activity =
-                    state.activity
-                        .slice(0, 200);
-            });
-            if (purchasedCount) {
-                HomeApp.toast(`${purchasedCount} item${purchasedCount === 1 ? "" : "s"} purchased. Inventory updated.`);
+            } catch (error) {
+                this.handlePersistenceError(
+                    "update the shopping quantity",
+                    error
+                );
             }
         },
-        removeShoppingItem(entryId) {
-            HomeStore.update(state => {
-                state.inventory
-                    .shoppingList =
-                    state.inventory
-                        .shoppingList
-                        .filter(item => item.id !==
-                        entryId);
-            });
-            HomeApp.toast("Item removed from shopping list.");
+
+        async toggleShoppingCheck(entryId) {
+            try {
+                await this.commitDatabaseChange(state => {
+                    const entry = state.inventory.shoppingList.find(
+                        item => item.id === entryId
+                    );
+
+                    if (!entry) {
+                        return false;
+                    }
+
+                    entry.checked = !entry.checked;
+                    return true;
+                });
+            } catch (error) {
+                this.handlePersistenceError(
+                    "update the shopping item",
+                    error
+                );
+            }
         },
-        setAutoRestock(enabled) {
-            HomeStore.update(state => {
-                state.inventory
-                    .autoAddShortages =
-                    Boolean(enabled);
-                this.syncDerivedState(state);
-            });
-            HomeApp.toast(enabled
-                ? "HomeOS will automatically add shortages."
-                : "Automatic shortage adding is off.");
+
+        async markPurchased() {
+            let purchasedCount = 0;
+
+            try {
+                const result = await this.commitDatabaseChange(state => {
+                    const purchased =
+                        state.inventory.shoppingList.filter(
+                            entry => entry.checked
+                        );
+
+                    purchasedCount = purchased.length;
+
+                    if (!purchasedCount) {
+                        return false;
+                    }
+
+                    purchased.forEach(entry => {
+                        if (entry.sourceType !== "inventory") {
+                            return;
+                        }
+
+                        const item = state.inventory.items.find(
+                            value =>
+                                value.id === entry.inventoryItemId
+                        );
+
+                        if (!item) {
+                            return;
+                        }
+
+                        item.current =
+                            Math.max(
+                                0,
+                                Number(item.current) || 0
+                            ) +
+                            Math.max(
+                                1,
+                                Number(entry.quantity) || 1
+                            );
+
+                        item.updatedAt =
+                            new Date().toISOString();
+                    });
+
+                    const purchasedIds = new Set(
+                        purchased.map(entry => entry.id)
+                    );
+
+                    state.inventory.shoppingList =
+                        state.inventory.shoppingList.filter(
+                            entry => !purchasedIds.has(entry.id)
+                        );
+
+                    return true;
+                });
+
+                if (result.changed && purchasedCount) {
+                    HomeApp.toast(
+                        `${purchasedCount} item${purchasedCount === 1 ? "" : "s"} purchased. Inventory updated.`
+                    );
+                }
+            } catch (error) {
+                this.handlePersistenceError(
+                    "mark the shopping items purchased",
+                    error
+                );
+            }
+        },
+
+        async removeShoppingItem(entryId) {
+            try {
+                const result = await this.commitDatabaseChange(state => {
+                    const before =
+                        state.inventory.shoppingList.length;
+
+                    state.inventory.shoppingList =
+                        state.inventory.shoppingList.filter(
+                            item => item.id !== entryId
+                        );
+
+                    return (
+                        state.inventory.shoppingList.length !== before
+                    );
+                });
+
+                if (result.changed) {
+                    HomeApp.toast(
+                        "Item removed from shopping list."
+                    );
+                }
+            } catch (error) {
+                this.handlePersistenceError(
+                    "remove the shopping item",
+                    error
+                );
+            }
+        },
+
+        async setAutoRestock(enabled) {
+            const nextValue = Boolean(enabled);
+
+            try {
+                await this.saveAutoRestockPreference(nextValue);
+
+                await this.commitDatabaseChange(state => {
+                    state.inventory.autoAddShortages = nextValue;
+                    return true;
+                });
+
+                HomeApp.toast(
+                    nextValue
+                        ? "HomeOS will automatically add shortages."
+                        : "Automatic shortage adding is off."
+                );
+            } catch (error) {
+                this.handlePersistenceError(
+                    "update automatic shortage adding",
+                    error
+                );
+            }
         },
     };
 })();
