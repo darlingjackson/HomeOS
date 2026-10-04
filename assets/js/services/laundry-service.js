@@ -20,6 +20,19 @@
         return supabase;
     }
 
+    async function deleteLoadRecord(loadId) {
+        if (!loadId) {
+            return { error: null };
+        }
+
+        const { error } = await client()
+            .from("laundry_loads")
+            .delete()
+            .eq("id", loadId);
+
+        return { error };
+    }
+
     async function load(householdId) {
         const [areas, loads, people] = await Promise.all([
             client()
@@ -122,9 +135,14 @@
             .select("*")
             .single();
 
+        if (updated.error) {
+            await deleteLoadRecord(loadId);
+            return { data: null, error: updated.error };
+        }
+
         return {
-            data: updated.data || current.data,
-            error: updated.error || null
+            data: updated.data,
+            error: null
         };
     }
 
@@ -159,6 +177,7 @@
             });
 
             if (moved.error) {
+                await deleteLoadRecord(loadId);
                 return { data: null, error: moved.error };
             }
 
@@ -169,11 +188,20 @@
                 .single();
 
             if (current.error) {
+                await deleteLoadRecord(loadId);
                 return { data: null, error: current.error };
             }
 
             row = current.data;
             guard += 1;
+        }
+
+        if (row?.stage !== "complete") {
+            await deleteLoadRecord(loadId);
+            return {
+                data: null,
+                error: new Error("HOME OS could not finish that Laundry checkoff.")
+            };
         }
 
         const metadata = {
@@ -195,9 +223,14 @@
             .select("*")
             .single();
 
+        if (updated.error) {
+            await deleteLoadRecord(loadId);
+            return { data: null, error: updated.error };
+        }
+
         return {
-            data: updated.data || row,
-            error: updated.error || null
+            data: updated.data,
+            error: null
         };
     }
 
@@ -289,15 +322,40 @@
         };
     }
 
-    async function removeLoad(householdId, loadId) {
-        const { error } = await client()
+    async function removeLoad(
+        householdId,
+        loadId,
+        { allowCompleted = false } = {}
+    ) {
+        let query = client()
             .from("laundry_loads")
             .delete()
             .eq("household_id", householdId)
-            .eq("id", loadId)
-            .neq("stage", "complete");
+            .eq("id", loadId);
 
-        return { error };
+        if (!allowCompleted) {
+            query = query.neq("stage", "complete");
+        }
+
+        const { data, error } = await query
+            .select("id")
+            .maybeSingle();
+
+        if (error) {
+            return { error };
+        }
+
+        if (!data?.id) {
+            return {
+                error: new Error(
+                    allowCompleted
+                        ? "That Laundry record could not be removed."
+                        : "Completed Laundry history cannot be removed from the active-load control."
+                )
+            };
+        }
+
+        return { error: null };
     }
 
     window.HomeOS.services.laundry = {

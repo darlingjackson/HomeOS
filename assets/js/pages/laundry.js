@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
     const service = window.HomeOS?.services?.laundry;
     const App = {
-        TIMER_KEY: "homeos_laundry_stage_timers_v1",
         STAGES: ["washing", "drying", "folding", "put_away"],
         INITIAL_WAIT_DAYS: 14,
         state: null,
@@ -18,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         preselectedCategoryKey: null,
         celebrationTimer: null,
         selectedLoadId: null,
+        pendingActions: new Set(),
         SYSTEMS: {
             color: {
                 label: "Sort by color",
@@ -86,7 +86,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             await this.reload();
             this.tick = setInterval(() => {
                 this.renderActiveLoads();
-                this.syncShellTimers();
             }, 1000);
         },
         async reload() {
@@ -101,7 +100,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                 this.selectedAreaId = this.areas()[0].id;
             }
             this.render();
-            this.syncShellTimers();
+        },
+        async runMutation(key, work) {
+            const mutationKey = String(key || "laundry");
+
+            if (this.pendingActions.has(mutationKey)) {
+                return;
+            }
+
+            this.pendingActions.add(mutationKey);
+
+            try {
+                return await work();
+            } catch (error) {
+                console.error("[HomeOS] Laundry update failed.", error);
+                this.notify(
+                    error?.message || "HOME OS could not save that Laundry change.",
+                    "attention"
+                );
+            } finally {
+                this.pendingActions.delete(mutationKey);
+            }
         },
         areas() {
             return this.data?.areas || [];
@@ -717,7 +736,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             this.renderBuddy();
             this.renderActiveLoads();
             this.renderHistory();
-            this.syncShellTimers();
         },
         replaceLoad(updatedLoad) {
             if (!updatedLoad?.id || !this.data?.loads) {
@@ -737,33 +755,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             else {
                 this.data.loads.unshift(updatedLoad);
             }
-        },
-        optimisticAdvance(load) {
-            const now = new Date();
-            const metadata = {
-                ...(load.metadata || {}),
-                stage_updated_at: now.toISOString()
-            };
-            if (load.stage === "washing") {
-                load.stage = "drying";
-                const dryMinutes = Math.max(1, Number(metadata.dry_minutes) || 60);
-                metadata.timer_ends_at =
-                    new Date(now.getTime() + dryMinutes * 60000).toISOString();
-            }
-            else if (load.stage === "drying") {
-                load.stage = "folding";
-                delete metadata.timer_ends_at;
-            }
-            else if (load.stage === "folding") {
-                load.stage = "put_away";
-                delete metadata.timer_ends_at;
-            }
-            else if (load.stage === "put_away") {
-                load.stage = "complete";
-                load.completed_at = now.toISOString();
-                delete metadata.timer_ends_at;
-            }
-            load.metadata = metadata;
         },
         renderActiveLoads() {
             const grid = document.getElementById("activeLoadsGrid");
@@ -1206,99 +1197,126 @@ document.addEventListener("DOMContentLoaded", async () => {
         async advanceLoad(id, button = null) {
             const load = this.activeLoads()
                 .find(item => String(item.id) === String(id));
+
             if (!load) {
                 return;
             }
+
             const before = load.stage;
-            const snapshot = JSON.parse(JSON.stringify(load));
+            const name = load.name;
+
             if (button) {
                 button.disabled = true;
                 button.classList.add("is-working");
                 button.textContent = "Moving…";
             }
-            // Make the interface respond immediately. Supabase confirms it
-            // underneath; if it fails, reload() restores the real record.
-            this.optimisticAdvance(load);
-            this.renderLaundryChange();
-            this.buddyHop(before === "put_away"
-                ? "big"
-                : "small");
+
             const result = await service.advanceLoad(id);
+
             if (result.error) {
                 console.error(result.error);
-                // Restore instantly, then reconcile with the database.
-                Object.assign(load, snapshot);
-                await this.reload();
-                this.notify(result.error.message || "HOME OS could not move this load.", "attention");
+
+                if (button) {
+                    button.disabled = false;
+                    button.classList.remove("is-working");
+                }
+
+                this.renderActiveLoads();
+                this.notify(
+                    result.error.message || "HOME OS could not move this load.",
+                    "attention"
+                );
                 return;
             }
+
             if (result.data) {
                 this.replaceLoad(result.data);
+            } else {
+                await this.reload();
             }
+
             this.renderLaundryChange();
+
             const message = before === "washing"
-                ? `${snapshot.name} is drying now. The dryer timer has started.`
+                ? `${name} is drying now. The dryer timer has started.`
                 : before === "drying"
-                    ? `${snapshot.name} is ready to fold.`
+                    ? `${name} is ready to fold.`
                     : before === "folding"
-                        ? `${snapshot.name} is folded. One last step: put it away.`
-                        : `${snapshot.name} is completely put away.`;
+                        ? `${name} is folded. One last step: put it away.`
+                        : `${name} is completely put away.`;
+
             this.notify(message, before === "put_away" ? "success" : "info");
+
             if (before === "put_away") {
                 this.buddyHop("big");
-                this.showLaundryCelebration(snapshot.name);
+                this.showLaundryCelebration(name);
             }
         },
-        async addTime(id) {
+        async addTime(id, button = null) {
             const load = this.activeLoads()
                 .find(item => String(item.id) === String(id));
+
             if (!load) {
                 return;
             }
-            const previousEnd = load.metadata?.timer_ends_at || null;
-            const base = previousEnd
-                ? new Date(previousEnd)
-                : new Date();
-            const safeBase = Number.isNaN(base.getTime())
-                ? new Date()
-                : base;
-            load.metadata = {
-                ...(load.metadata || {}),
-                timer_ends_at: new Date(safeBase.getTime() + 5 * 60000).toISOString()
-            };
-            this.renderActiveLoads();
-            this.syncShellTimers();
-            const result = await service.extendTimer(id, 5);
-            if (result.error) {
-                load.metadata.timer_ends_at = previousEnd;
-                this.renderActiveLoads();
-                return this.notify("HOME OS could not extend the timer.", "attention");
+
+            if (button) {
+                button.disabled = true;
+                button.classList.add("is-working");
             }
+
+            const result = await service.extendTimer(id, 5);
+
+            if (button) {
+                button.disabled = false;
+                button.classList.remove("is-working");
+            }
+
+            if (result.error) {
+                console.error(result.error);
+                this.notify(
+                    result.error.message || "HOME OS could not extend the timer.",
+                    "attention"
+                );
+                return;
+            }
+
             if (result.data) {
                 this.replaceLoad(result.data);
+            } else {
+                await this.reload();
             }
+
             this.renderActiveLoads();
-            this.syncShellTimers();
             this.notify("Added 5 minutes.", "info");
         },
         async undoCompletedLoad(id, label = "Laundry load") {
             const load = this.loads()
                 .find(item => String(item.id) === String(id));
+
             if (!load) {
                 return;
             }
-            const snapshot = JSON.parse(JSON.stringify(load));
-            this.data.loads = this.data.loads.filter(item => String(item.id) !== String(id));
-            this.renderLaundryChange();
-            const result = await service.removeLoad(this.state.household.id, id);
+
+            const result = await service.removeLoad(
+                this.state.household.id,
+                id,
+                { allowCompleted: true }
+            );
+
             if (result.error) {
-                // Put the record back locally if Supabase rejects the delete.
-                this.data.loads.push(snapshot);
-                this.renderLaundryChange();
-                return this.notify(result.error.message ||
-                    "HOME OS could not undo that laundry completion.", "attention");
+                this.notify(
+                    result.error.message || "HOME OS could not undo that laundry completion.",
+                    "attention"
+                );
+                return;
             }
-            this.notify(`${label} is back in the waiting pile. HOME OS will no longer count it as completed.`, "info");
+
+            await this.reload();
+            this.notify(
+                `${label} is back in the waiting pile. HOME OS will no longer count it as completed.`,
+                "info"
+            );
         },
         async removeLoad(id) {
             const result = await service.removeLoad(this.state.household.id, id);
@@ -1306,45 +1324,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return this.notify(result.error.message || "HOME OS could not remove this load.", "attention");
             }
             await this.reload();
-        },
-        syncShellTimers() {
-            if (!this.state?.household?.id || !this.data) {
-                return;
-            }
-            let existing = [];
-            try {
-                const parsed = JSON.parse(localStorage.getItem(this.TIMER_KEY) || "[]");
-                existing = Array.isArray(parsed) ? parsed : [];
-            }
-            catch (_) { }
-            const householdId = String(this.state.household.id);
-            const keepOtherHomes = existing.filter(timer => String(timer.householdId || "") !== householdId);
-            const oldMap = new Map(existing
-                .filter(timer => String(timer.householdId || "") === householdId)
-                .map(timer => [
-                `${timer.loadId}:${timer.stage}:${timer.endsAt}`,
-                timer
-            ]));
-            const own = this.activeLoads()
-                .filter(load => ["washing", "drying"].includes(load.stage) &&
-                load.metadata?.timer_ends_at)
-                .map(load => {
-                const key = `${load.id}:${load.stage}:${load.metadata.timer_ends_at}`;
-                const old = oldMap.get(key);
-                return {
-                    householdId,
-                    loadId: load.id,
-                    name: load.name,
-                    stage: load.stage,
-                    endsAt: load.metadata.timer_ends_at,
-                    notified: Boolean(old?.notified),
-                    notifiedAt: old?.notifiedAt || null
-                };
-            });
-            localStorage.setItem(this.TIMER_KEY, JSON.stringify([
-                ...keepOtherHomes,
-                ...own
-            ]));
         },
         timerRemaining(load) {
             const end = new Date(load.metadata?.timer_ends_at || "").getTime();
@@ -1372,60 +1351,97 @@ document.addEventListener("DOMContentLoaded", async () => {
             })[stage] || "Wash";
         },
         bind() {
-            document.addEventListener("click", event => {
+            document.addEventListener("click", async event => {
                 const start = event.target.closest("#startLoadButton");
                 if (start) {
-                    return this.openLoadDialog();
+                    this.openLoadDialog();
+                    return;
                 }
+
                 const category = event.target.closest("[data-start-category]");
                 if (category) {
-                    return this.openLoadDialog(category.dataset.startCategory);
+                    this.openLoadDialog(category.dataset.startCategory);
+                    return;
                 }
+
                 const washed = event.target.closest("[data-mark-washed]");
                 if (washed && !washed.disabled) {
-                    return this.markWashed(washed.dataset.markWashed);
+                    await this.runMutation(
+                        `washed:${washed.dataset.markWashed}`,
+                        () => this.markWashed(washed.dataset.markWashed)
+                    );
+                    return;
                 }
+
                 const undo = event.target.closest("[data-undo-washed]");
                 if (undo) {
-                    return this.undoCompletedLoad(undo.dataset.undoWashed, undo.dataset.undoLabel || "Laundry load");
+                    await this.runMutation(
+                        `undo:${undo.dataset.undoWashed}`,
+                        () => this.undoCompletedLoad(
+                            undo.dataset.undoWashed,
+                            undo.dataset.undoLabel || "Laundry load"
+                        )
+                    );
+                    return;
                 }
+
                 const selectedLoad = event.target.closest("[data-select-load]");
                 if (selectedLoad) {
-                    this.selectedLoadId =
-                        selectedLoad.dataset.selectLoad;
+                    this.selectedLoadId = selectedLoad.dataset.selectLoad;
                     this.renderActiveLoads();
                     return;
                 }
+
                 const next = event.target.closest("[data-next-stage]");
                 if (next) {
-                    return this.advanceLoad(next.dataset.nextStage, next);
+                    await this.runMutation(
+                        `advance:${next.dataset.nextStage}`,
+                        () => this.advanceLoad(next.dataset.nextStage, next)
+                    );
+                    return;
                 }
+
                 const add = event.target.closest("[data-add-time]");
                 if (add) {
-                    return this.addTime(add.dataset.addTime, add);
+                    await this.runMutation(
+                        `timer:${add.dataset.addTime}`,
+                        () => this.addTime(add.dataset.addTime, add)
+                    );
+                    return;
                 }
+
                 const remove = event.target.closest("[data-remove-load]");
                 if (remove) {
-                    return this.removeLoad(remove.dataset.removeLoad);
+                    await this.runMutation(
+                        `remove:${remove.dataset.removeLoad}`,
+                        () => this.removeLoad(remove.dataset.removeLoad)
+                    );
+                    return;
                 }
+
                 if (event.target.closest("[data-close-load]")) {
-                    return this.closeLoadDialog();
+                    this.closeLoadDialog();
+                    return;
                 }
+
                 if (event.target.closest("[data-close-laundry-celebration]")) {
-                    return this.closeLaundryCelebration();
+                    this.closeLaundryCelebration();
                 }
             });
+
             document.getElementById("loadForm")
-                ?.addEventListener("submit", event => {
-                event.preventDefault();
-                this.startLoad();
-            });
+                ?.addEventListener("submit", async event => {
+                    event.preventDefault();
+                    await this.runMutation("start-load", () => this.startLoad());
+                });
+
             document.getElementById("loadAreaInput")
                 ?.addEventListener("change", event => {
-                this.selectedAreaId = event.target.value;
-                this.populateCategorySelect();
-                this.syncDialogTimes();
-            });
+                    this.selectedAreaId = event.target.value;
+                    this.populateCategorySelect();
+                    this.syncDialogTimes();
+                });
+
             window.addEventListener("homeos:laundry-timer-due", () => {
                 this.renderActiveLoads();
                 this.renderGuideAndTracker();
