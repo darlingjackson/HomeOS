@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!--
+============================================================================
+    HomeOS // Create Account
+
+    Creates a HomeOS account and either starts a new household
+    or joins one through an invitation.
+
+    Keep the login form IDs and homePath values in sync with auth-page.js.
+============================================================================
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sign in to your HomeOS household.">
+
+    <title>Sign In | HomeOS</title>
+
+    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/auth.css">
+</head>
+
+<body
+    class="auth-page"
+    data-auth-page="login"
+    data-page="login"
+    data-shell-mode="public"
+>
+    <!-- 01 // ACCESSIBILITY + SHARED SHELL MOUNTS -->
+    <a class="skip-link" href="#mainContent">Skip to content</a>
+
+    <header id="appHeader"></header>
+
+    <!-- 02 // LOGIN EXPERIENCE -->
+    <main class="auth-stage" id="mainContent">
+        <section class="auth-card" aria-labelledby="authTitle">
+
+            <!-- 02A // HOMEOS INTRO / BRAND PANEL -->
+            <aside class="auth-intelligence-panel" aria-label="About HomeOS">
+                <div class="auth-brand">
+                    <span class="auth-brand-mark" aria-hidden="true">
+                        <img src="assets/images/branding/homeos-icon.png" alt="">
+                    </span>
+
+                    <span class="auth-brand-copy">
+                        <strong>HomeOS</strong>
+                        <span>HOME INTELLIGENCE</span>
+                    </span>
+                </div>
+
+                <div class="auth-intelligence-copy">
+                    <span class="auth-eyebrow">A CALMER WAY TO RUN HOME</span>
+
+                    <h1>
+                        Come back to a home that
+                        <em>remembers the rhythm.</em>
+                    </h1>
+
+                    <p>
+                        Your routines, cleaning, laundry, inventory and family
+                        responsibilities stay connected in one thoughtful system.
+                    </p>
+                </div>
+
+                <div class="auth-system-status">
+                    <span class="auth-status-dot" aria-hidden="true"></span>
+                    <span>Private household access</span>
+                </div>
+
+                <div class="auth-orbit" aria-hidden="true"></div>
+            </aside>
+
+            <!-- 02B // SIGN-IN FORM PANEL -->
+            <section class="auth-form-panel">
+                <div class="auth-form-heading">
+                    <span class="auth-eyebrow">WELCOME BACK</span>
+                    <h2 id="authTitle">Sign in to HomeOS.</h2>
+                    <p>
+                        Use the email and password connected to your HomeOS account.
+                    </p>
+                </div>
+
+                <!-- Email-confirmation return state; auth-page.js controls visibility. -->
+                <div
+                    class="auth-notice auth-notice-success"
+                    id="authConfirmationNotice"
+                    hidden
+                    role="status"
+                    aria-live="polite"
+                >
+                    <strong>Email confirmed.</strong>
+                    <span>Your HomeOS account is ready to use.</span>
+                </div>
+
+                <!-- Shared authentication error mount; auth-page.js writes the message. -->
+                <div
+                    class="auth-notice auth-notice-error"
+                    id="authError"
+                    hidden
+                    role="alert"
+                    aria-live="assertive"
+                ></div>
+
+                <!-- IDs below are part of the auth-page.js login contract. -->
+                <form
+                    class="auth-form"
+                    id="loginForm"
+                    novalidate
+                    aria-describedby="authError"
+                >
+                    <label class="auth-field">
+                        <span>Email</span>
+                        <input
+                            id="loginEmail"
+                            name="email"
+                            type="email"
+                            autocomplete="email"
+                            inputmode="email"
+                            placeholder="you@example.com"
+                            required
+                        >
+                    </label>
+
+                    <label class="auth-field">
+                        <span>Password</span>
+
+                        <div class="auth-password-field">
+                            <input
+                                id="loginPassword"
+                                name="password"
+                                type="password"
+                                autocomplete="current-password"
+                                placeholder="Enter your password"
+                                required
+                            >
+
+                            <button
+                                class="auth-password-toggle"
+                                type="button"
+                                data-password-toggle="loginPassword"
+                                aria-label="Show password"
+                                aria-pressed="false"
+                            >
+                                Show
+                            </button>
+                        </div>
+                    </label>
+
+                    <button class="auth-submit" id="loginSubmit" type="submit">
+                        <span>Sign In</span>
+                        <span aria-hidden="true">→</span>
+                    </button>
+                </form>
+
+                <p class="auth-trust-note">
+                    HomeOS returns you to the household connected to this account.
+                </p>
+
+                <div class="auth-divider"></div>
+
+                <div class="auth-switch">
+                    <span>New to HomeOS?</span>
+                    <a href="signup.html">Create an account</a>
+                </div>
+
+                <!-- Login-only shortcut; keeps Kids Mode separate from the adult dashboard. -->
+                <a class="auth-kids-link" href="kids.html">
+                    <img src="assets/images/branding/homeos-icon.png" alt="">
+                    <span>Kids Mode</span>
+                    <small>Open assigned missions without the adult dashboard</small>
+                    <b aria-hidden="true">→</b>
+                </a>
+            </section>
+
+        </section>
+    </main>
+
+    <footer id="appFooter"></footer>
+
+    <!-- 03 // SCRIPT DEPENDENCIES
+         Load order matters: Supabase -> core -> shell -> service -> page controller. -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/supabase-client.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    <script src="assets/js/core/session.js"></script>
+    <script src="assets/js/core/permissions.js"></script>
+
+    <script src="assets/js/components/shell.js"></script>
+
+    <script src="assets/js/services/people-service.js"></script>
+    <script src="assets/js/pages/auth-page.js"></script>
+</body>
+</html>

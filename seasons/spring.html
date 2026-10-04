@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <base href="../">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Plan and track your HomeOS Spring Renewal.">
+
+    <title>Spring Renewal | HomeOS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap"
+    >
+
+    <!-- Shared HomeOS styles -->
+    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/season-detail.css">
+</head>
+
+<body
+    data-page="seasonal"
+    data-seasonal-view="detail"
+    data-season="spring"
+>
+    <!-- Shared shell -->
+    <header id="appHeader"></header>
+
+    <!-- The seasonal layout is built by season-detail.js -->
+    <main
+        class="app-main season-detail-main"
+        id="seasonDetailRoot"
+    ></main>
+
+    <footer id="appFooter"></footer>
+
+    <div
+        class="app-toast"
+        id="appToast"
+        aria-live="polite"
+    ></div>
+
+    <!-- HomeOS core -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/supabase-client.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    <script src="assets/js/core/session.js"></script>
+    <script src="assets/js/core/permissions.js"></script>
+
+    <script src="assets/js/components/shell.js"></script>
+
+    <!-- Seasonal page -->
+    <script src="assets/js/pages/season-detail.js"></script>
+    <!-- Spring only -->
+    <script src="assets/js/components/spring-bloom-background.js"></script>
+
+    <script src="assets/js/services/seasonal-service.js"></script>
+    <script src="assets/js/pages/seasonal.js"></script>
+</body>
+</html>

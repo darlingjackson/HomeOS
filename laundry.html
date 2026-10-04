@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<!--
+============================================================================
+    HomeOS // Laundry
+
+    Laundry tracking, live load stages, history and Laundry Buddy.
+
+    Laundry setup lives in Account > Home Setup > Laundry.
+============================================================================
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Laundry | HOME OS</title>
+    <meta name="description" content="HOME OS Laundry">
+<link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/laundry.css">
+</head>
+
+<body data-page="laundry">
+    <header id="appHeader"></header>
+
+    <main class="app-main laundry-main">
+
+        <!-- =====================================================
+             01 // INTRO
+        ====================================================== -->
+        <section class="laundry-intro">
+            <div>
+                <span class="laundry-kicker">LAUNDRY · HOUSEHOLD RHYTHM</span>
+                <h1>Keep the laundry <em>moving.</em></h1>
+                <p>
+                    HOME OS follows the way your household actually sorts laundry,
+                    remembers what has been washed, and keeps machine time from
+                    disappearing in the middle of the day.
+                </p>
+            </div>
+
+            <div class="laundry-intro-actions">
+                <button class="button button-primary" id="startLoadButton" type="button">
+                    Start a load <span>→</span>
+                </button>
+                <a class="laundry-setup-link" href="account.html#home-laundry">Laundry setup</a>
+            </div>
+        </section>
+
+        <!-- =====================================================
+             02 // MASCOT + TRACKER
+        ====================================================== -->
+        <section class="laundry-top-grid">
+
+            <aside class="laundry-guide-card" id="laundryGuideCard">
+                <div class="laundry-card-topline">
+                    <span>HOMEOS LAUNDRY GUIDE</span>
+                    <strong id="laundryGuideStatus">CHECKING</strong>
+                </div>
+
+                <div class="laundry-guide-visual">
+                    <div class="laundry-guide-orbit orbit-one" aria-hidden="true"></div>
+                    <div class="laundry-guide-orbit orbit-two" aria-hidden="true"></div>
+                    <img
+                        src="assets/images/branding/laundry-mascot.png"
+                        alt="HOME OS laundry guide"
+                        class="laundry-guide-mascot"
+                    >
+                </div>
+
+                <div class="laundry-guide-message">
+                    <span>WHAT NEEDS YOU NEXT</span>
+                    <p id="laundryGuideMessage">HOME OS is checking your laundry rhythm.</p>
+                </div>
+            </aside>
+
+            <aside class="laundry-tracker-card">
+                <div class="laundry-card-topline">
+                    <span>LAUNDRY TRACKER</span>
+                    <strong id="laundryTrackerState">BUILDING</strong>
+                </div>
+
+                <div class="laundry-tracker-main">
+                    <div class="laundry-tracker-ring" id="laundryTrackerRing" style="--tracker-progress:0deg">
+                        <div class="laundry-tracker-center">
+                            <strong id="laundryTrackerPercent">0%</strong>
+                            <span>CAUGHT UP</span>
+                        </div>
+                    </div>
+
+                    <div class="laundry-tracker-copy">
+                        <span class="laundry-kicker">THIS HOUSEHOLD</span>
+                        <h2 id="laundryTrackerTitle">Laundry is waiting.</h2>
+                        <p id="laundryTrackerMessage">
+                            HOME OS assumes a new laundry setup is starting with about two weeks of laundry waiting.
+                        </p>
+
+                        <div class="laundry-tracker-stats">
+                            <div>
+                                <span>Fresh groups</span>
+                                <strong id="laundryTrackerFresh">0 / 0</strong>
+                            </div>
+                            <div>
+                                <span>Active loads</span>
+                                <strong id="laundryTrackerActive">0</strong>
+                            </div>
+                            <div>
+                                <span>Oldest wait</span>
+                                <strong id="laundryTrackerOldest">14d</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="laundry-profile-strip" id="laundryProfileStrip">
+                    <span>Loading laundry setup…</span>
+                </div>
+            </aside>
+        </section>
+
+        <!-- =====================================================
+             03 // BUDDY + LIVE LOADS
+        ====================================================== -->
+        <section class="laundry-live-grid">
+
+            <aside class="laundry-buddy-card" id="laundryBuddyCard" data-buddy-state="overflow">
+                <div class="laundry-buddy-copy">
+                    <span class="laundry-kicker">LAUNDRY BUDDY</span>
+                    <h2 id="laundryBuddyTitle">The basket is overflowing.</h2>
+                    <p id="laundryBuddyMessage">
+                        A new Laundry profile starts with two weeks of laundry waiting.
+                    </p>
+
+                    <div class="laundry-buddy-meta">
+                        <span id="laundryBuddyPressure">0 load groups waiting</span>
+                        <span id="laundryBuddyLastDone">No loads recorded yet</span>
+                    </div>
+                </div>
+
+                <div class="laundry-buddy-visual" aria-hidden="true">
+                    <div class="laundry-smell smell-one"></div>
+                    <div class="laundry-smell smell-two"></div>
+                    <div class="laundry-smell smell-three"></div>
+
+                    <div class="laundry-stale-dots stale-a"></div>
+                    <div class="laundry-stale-dots stale-b"></div>
+                    <div class="laundry-stale-dots stale-c"></div>
+
+                    <div class="laundry-pile">
+                        <i class="cloth cloth-a"></i>
+                        <i class="cloth cloth-b"></i>
+                        <i class="cloth cloth-c"></i>
+                        <i class="cloth cloth-d"></i>
+                        <i class="cloth cloth-e"></i>
+                        <i class="cloth cloth-f"></i>
+                        <i class="cloth cloth-g"></i>
+                        <i class="cloth cloth-h"></i>
+                    </div>
+
+                    <div class="laundry-basket">
+                        <div class="basket-rim"></div>
+                        <div class="basket-body">
+                            <div class="basket-weave"></div>
+                            <span class="basket-eye left"></span>
+                            <span class="basket-eye right"></span>
+                            <span class="basket-cheek left"></span>
+                            <span class="basket-cheek right"></span>
+                            <span class="basket-mouth"></span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="laundry-active-card">
+                <div class="laundry-section-heading compact">
+                    <div>
+                        <span class="laundry-kicker">LIVE LOADS</span>
+                        <h2>What's moving right now?</h2>
+                    </div>
+                    <p>
+                        Wash and dry timers keep running even if you leave Laundry.
+                        HOME OS will alert you from another page when a machine finishes.
+                    </p>
+                </div>
+
+                <div id="activeLoadsGrid" class="active-loads-grid"></div>
+            </section>
+        </section>
+
+        <!-- =====================================================
+             04 // HOUSEHOLD LAUNDRY SYSTEM
+        ====================================================== -->
+        <section class="laundry-section laundry-system-section">
+            <div class="laundry-section-heading">
+                <div>
+                    <span class="laundry-kicker">YOUR LAUNDRY SYSTEM</span>
+                    <h2 id="laundrySystemHeading">Sort by color</h2>
+                </div>
+                <p id="laundrySystemDescription">
+                    Clothing is separated by color, while towels, linens and floor textiles keep their own load groups.
+                </p>
+            </div>
+
+            <div class="laundry-starting-note" id="laundryStartingNote">
+                <div>
+                    <span>NEW HOMEOS LAUNDRY START</span>
+                    <strong>Tell me what you've already washed.</strong>
+                </div>
+                <p>
+                    For a brand-new Laundry profile, HOME OS assumes none of these
+                    groups have been washed for two weeks. Mark anything you've
+                    already handled and the tracker will correct itself immediately.
+                </p>
+            </div>
+
+            <div class="laundry-category-grid" id="laundryCategoryGrid"></div>
+        </section>
+
+        <!-- =====================================================
+             05 // RECENT HISTORY
+        ====================================================== -->
+        <details class="laundry-history-panel">
+            <summary>
+                <span>
+                    <strong>Recent laundry</strong>
+                    <small id="laundryHistorySummary">No completed loads yet</small>
+                </span>
+                <span aria-hidden="true">⌄</span>
+            </summary>
+            <div class="laundry-history-list" id="laundryHistoryList"></div>
+        </details>
+    </main>
+
+    <footer id="appFooter"></footer>
+    <div class="app-toast" id="appToast" aria-live="polite"></div>
+
+    <!-- =========================================================
+         START LOAD
+    ========================================================== -->
+    <dialog class="laundry-dialog" id="loadDialog">
+        <form method="dialog" id="loadForm">
+            <div class="laundry-dialog-head">
+                <div>
+                    <span class="laundry-kicker">START A LOAD</span>
+                    <h2>What's going in?</h2>
+                </div>
+                <button type="button" class="laundry-dialog-close" data-close-load aria-label="Close">×</button>
+            </div>
+
+            <div class="laundry-form-grid">
+                <label class="laundry-field wide">
+                    <span>Load group</span>
+                    <select id="loadCategoryInput" required></select>
+                </label>
+
+                <label class="laundry-field">
+                    <span>Laundry area</span>
+                    <select id="loadAreaInput" required></select>
+                </label>
+
+                <label class="laundry-field">
+                    <span>Who is moving this load?</span>
+                    <select id="loadAssigneeInput">
+                        <option value="">Anyone</option>
+                    </select>
+                </label>
+
+                <label class="laundry-field">
+                    <span>Washer timer</span>
+                    <div class="laundry-minute-input">
+                        <input id="loadWashMinutes" type="number" min="1" max="240" value="45">
+                        <small>MIN</small>
+                    </div>
+                </label>
+
+                <label class="laundry-field">
+                    <span>Dryer timer</span>
+                    <div class="laundry-minute-input">
+                        <input id="loadDryMinutes" type="number" min="1" max="240" value="60">
+                        <small>MIN</small>
+                    </div>
+                </label>
+            </div>
+
+            <div class="laundry-dialog-note">
+                The washer timer starts as soon as you press <strong>Start washing</strong>.
+                Your dryer timer starts when you move the load to Dry.
+            </div>
+
+            <div class="laundry-dialog-actions">
+                <button class="button button-secondary" type="button" data-close-load>Cancel</button>
+                <button class="button button-primary" type="submit">Start washing <span>→</span></button>
+            </div>
+        </form>
+    </dialog>
+
+
+    <!-- =========================================================
+         LAUNDRY COMPLETE CELEBRATION
+    ========================================================== -->
+    <dialog class="laundry-celebration-dialog" id="laundryCelebrationDialog">
+        <div class="laundry-celebration-confetti" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <div class="laundry-celebration-buddy" aria-hidden="true">
+            <div class="celebration-sparkle s1">✦</div>
+            <div class="celebration-sparkle s2">✦</div>
+            <div class="celebration-sparkle s3">✦</div>
+
+            <div class="celebration-basket">
+                <div class="celebration-basket-rim"></div>
+                <div class="celebration-basket-body">
+                    <span class="celebration-eye left"></span>
+                    <span class="celebration-eye right"></span>
+                    <span class="celebration-cheek left"></span>
+                    <span class="celebration-cheek right"></span>
+                    <span class="celebration-smile"></span>
+                </div>
+            </div>
+        </div>
+
+        <span class="laundry-kicker">LAUNDRY COMPLETE</span>
+        <h2>She is ridiculously happy.</h2>
+        <p id="laundryCelebrationMessage">
+            One whole load made it all the way home.
+        </p>
+
+        <button class="button button-primary" type="button" data-close-laundry-celebration>
+            Nice ✦
+        </button>
+    </dialog>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/supabase-client.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    <script src="assets/js/core/session.js"></script>
+    <script src="assets/js/core/permissions.js"></script>
+
+    <script src="assets/js/components/shell.js"></script>
+    <script src="assets/js/services/laundry-service.js"></script>
+    <script src="assets/js/pages/laundry.js"></script>
+</body>
+</html>

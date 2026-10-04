@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<!--
+============================================================================
+HomeOS // Daily Rhythm
+
+    The main daily view for routines, focus time, laundry flow
+    and the Rhythm Companion.
+
+    Keep the Daily Rhythm IDs in sync with daily.js and the shared components.
+============================================================================
+-->
+<html lang="en">
+
+<head>
+  <!-- =========================================================
+       HOME OS — MAIN / DAILY RHYTHM PAGE
+       File: index.html
+       ========================================================= -->
+
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Daily Rhythm | HOME OS</title>
+
+  <meta
+    name="description"
+    content="HOME OS Daily Rhythm - an interactive view of today's household routines, focus sessions and progress."
+  />
+
+
+  <!-- =========================================================
+       FONTS
+       ========================================================= -->
+
+  <link
+    href="https://fonts.googleapis.com"
+    rel="preconnect"
+  />
+
+  <link
+    href="https://fonts.gstatic.com"
+    rel="preconnect"
+    crossorigin
+  />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- =========================================================
+       HOME OS STYLES
+
+       app.css = my shared HOME OS styles
+       daily.css = this page
+       rhythm-companion.css = my companion
+       task-editor.css = my reusable task editor
+       ========================================================= -->
+
+  <link
+    href="assets/css/app.css"
+    rel="stylesheet"
+  />
+
+  <link
+    href="assets/css/daily.css"
+    rel="stylesheet"
+  />
+
+  <link
+    href="assets/css/components/rhythm-companion.css"
+    rel="stylesheet"
+  />
+
+  <link
+    href="assets/css/task-editor.css"
+    rel="stylesheet"
+  />
+</head>
+
+
+<body data-page="daily">
+
+
+  <!-- =========================================================
+       GLOBAL HEADER
+       ========================================================= -->
+
+  <header id="appHeader"></header>
+
+
+  <!-- =========================================================
+       MAIN PAGE
+       ========================================================= -->
+
+  <main class="app-main daily-main">
+
+
+    <!-- =======================================================
+         1. DAILY HERO
+         It shows my greeting, date, mascot, and today's progress.
+         ======================================================= -->
+
+    <section
+      class="daily-hero-shell"
+      aria-labelledby="dailyGreeting"
+    >
+
+
+      <!-- My greeting and HOME OS guide -->
+      <div class="daily-hero-copy">
+
+        <div class="daily-system-chip">
+          <span></span>
+          DAILY RHYTHM · TODAY
+        </div>
+
+
+        <h1 id="dailyGreeting">
+          Good morning,
+          <br />
+          <strong>Home.</strong>
+        </h1>
+
+
+        <p class="daily-hero-line">
+          A little care for a
+          <em>brighter everyday!</em>
+        </p>
+
+
+        <p
+          class="daily-date"
+          id="dailyDateTime"
+        >
+          Loading today...
+        </p>
+
+
+        <!-- My HOME OS guide message changes with today's rhythm -->
+        <div class="daily-guide-note">
+
+          <span
+            class="daily-guide-mark"
+            aria-hidden="true"
+          >
+            ✦
+          </span>
+
+          <div>
+
+            <span>
+              HOME OS GUIDE
+            </span>
+
+            <p id="dailyGuideMessage">
+              HOME OS is checking today's rhythm.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- My Daily Rhythm mascot -->
+      <div
+        class="daily-mascot-console"
+        aria-hidden="true"
+      >
+
+        <span class="daily-mascot-grid"></span>
+
+        <span
+          class="daily-mascot-orbit daily-mascot-orbit-one"
+        ></span>
+
+        <span
+          class="daily-mascot-orbit daily-mascot-orbit-two"
+        ></span>
+
+        <span
+          class="daily-mascot-glow daily-mascot-glow-pink"
+        ></span>
+
+        <span
+          class="daily-mascot-glow daily-mascot-glow-aqua"
+        ></span>
+
+        <img
+          class="daily-mascot"
+          src="assets/images/branding/daily-mascot.png"
+          alt=""
+        />
+
+      </div>
+
+
+      <!-- This shows my overall progress for today -->
+      <aside
+        class="daily-progress-console"
+        aria-label="Today's rhythm progress"
+      >
+
+        <span class="daily-status-label">
+          TODAY'S RHYTHM
+        </span>
+
+
+        <strong
+          class="daily-live-clock"
+          id="dailyClock"
+        >
+          --:--
+        </strong>
+
+
+        <span
+          class="daily-status-date"
+          id="dailyShortDate"
+        >
+          Loading...
+        </span>
+
+
+        <div class="daily-progress-divider"></div>
+
+
+        <div class="daily-current-shift">
+
+          <span>
+            HOME STATUS
+          </span>
+
+          <strong id="selectedShiftLabel">
+            DAILY RHYTHM
+          </strong>
+
+        </div>
+
+
+        <div class="daily-progress-number-row">
+
+          <strong id="selectedShiftProgress">
+            0%
+          </strong>
+
+          <span id="selectedShiftRemaining">
+            0 TASKS
+          </span>
+
+        </div>
+
+
+        <div class="daily-overall-track">
+          <span id="dailyOverallProgressBar"></span>
+        </div>
+
+
+        <p id="dailyOverallText">
+          0 of 0 daily tasks complete.
+        </p>
+
+      </aside>
+
+    </section>
+
+
+
+    <!-- =======================================================
+         2. RHYTHM COMPANION
+
+         This is where my companion lives.
+
+         I use this section to show:
+         - his current state
+         - how much care the home has gotten today
+         - sunlight and water earned
+         - my Opening Shift
+         - my Closing Shift
+         ======================================================= -->
+
+    <article
+      class="rhythm-companion-card daily-live-rhythm-card"
+      id="rhythmCompanionCard"
+      data-bloom="false"
+      data-health="healthy"
+      data-rhythm-phase="day"
+      data-shift="opening"
+      data-sleeping="false"
+    >
+
+
+      <div class="daily-card-heading">
+
+        <div>
+
+          <span class="daily-section-kicker">
+            HOME COMPANION
+          </span>
+
+
+          <h2>
+            Your rhythm companion.
+          </h2>
+
+
+          <p>
+            He follows the real rhythm of your home,
+            changes with the season automatically,
+            and reacts to what still needs care.
+          </p>
+
+        </div>
+
+
+        <span
+          class="rhythm-companion-state-pill"
+          id="rhythmCompanionStatePill"
+        >
+          READY
+        </span>
+
+      </div>
+
+
+
+      <div class="daily-live-rhythm-grid">
+
+
+        <!-- ===================================================
+             MY COMPANION
+
+             My companion stays on this side while I move
+             through my Opening and Closing tasks.
+             =================================================== -->
+
+        <div class="rhythm-companion-left-sticky">
+
+
+          <!-- My companion gets rendered inside this container -->
+          <div
+            class="rhythm-companion-stage"
+            id="rhythmCompanionStage"
+          >
+
+            <div
+              class="rhythm-companion-mount"
+              id="rhythmCompanionMount"
+            ></div>
+
+          </div>
+
+
+
+          <!--
+            This is where I control when my companion wakes up
+            and when he goes to sleep.
+          -->
+          <div class="rhythm-day-schedule">
+
+
+            <div class="rhythm-day-cycle-copy">
+
+              <span>
+                DAY CYCLE
+              </span>
+
+
+              <!--
+                I am keeping this hidden for now.
+
+                My JavaScript can still use it when it needs
+                the full schedule.
+              -->
+              <small
+                id="rhythmScheduleSummary"
+                hidden
+              >
+                Awake 8:00 AM · Closing begins 5:00 PM · Sleep 10:00 PM
+              </small>
+
+            </div>
+
+
+
+            <div class="rhythm-day-schedule-fields">
+
+
+              <label for="dailyWakeTime">
+
+                <span>
+                  WAKE
+                </span>
+
+                <input
+                  id="dailyWakeTime"
+                  type="time"
+                  value="08:00"
+                />
+
+              </label>
+
+
+
+              <label for="dailyBedTime">
+
+                <span>
+                  SLEEP
+                </span>
+
+                <input
+                  id="dailyBedTime"
+                  type="time"
+                  value="22:00"
+                />
+
+              </label>
+
+
+            </div>
+
+
+            <button
+              id="dailySaveSchedule"
+              type="button"
+            >
+              Save
+            </button>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ===================================================
+             MY DAILY RHYTHM
+
+             This side holds my companion messages and my
+             Opening and Closing tasks.
+             =================================================== -->
+
+        <div class="daily-live-rhythm-right">
+
+
+          <!-- My companion's current status -->
+          <div class="rhythm-companion-copy">
+
+
+            <strong id="rhythmCompanionName">
+              Your companion is waking up.
+            </strong>
+
+
+            <p id="rhythmCompanionMessage">
+              HOME OS is checking what still needs care today.
+            </p>
+
+
+
+            <!-- This tells me what HOME OS thinks I should do next -->
+            <div class="rhythm-companion-goal">
+
+              <span>
+                NEXT LITTLE WIN
+              </span>
+
+              <strong id="rhythmCompanionGoal">
+                Complete one small task to move the rhythm forward.
+              </strong>
+
+            </div>
+
+
+
+            <!-- How much care I have given my home today -->
+            <div class="rhythm-care-row">
+
+              <div>
+
+                <span>
+                  TODAY'S CARE
+                </span>
+
+                <strong id="rhythmCompanionCare">
+                  0%
+                </strong>
+
+              </div>
+
+
+              <div class="rhythm-care-track">
+                <span id="rhythmCompanionCareBar"></span>
+              </div>
+
+            </div>
+
+
+
+            <!--
+              My Opening tasks give him sunlight.
+              My Closing tasks give him water.
+            -->
+            <div
+              class="rhythm-care-badges"
+              aria-label="Shift care"
+            >
+
+              <span>
+
+                <b aria-hidden="true">
+                  ☀
+                </b>
+
+                Sunlight
+
+                <strong id="rhythmCompanionSun">
+                  0
+                </strong>
+
+                <small id="rhythmCompanionSunTotal">
+                  / 0
+                </small>
+
+              </span>
+
+
+              <span>
+
+                <b aria-hidden="true">
+                  💧
+                </b>
+
+                Water
+
+                <strong id="rhythmCompanionWater">
+                  0
+                </strong>
+
+                <small id="rhythmCompanionWaterTotal">
+                  / 0
+                </small>
+
+              </span>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- =================================================
+               MY DAILY SHIFTS
+
+               I split my daily routine into two parts:
+
+               Opening Shift = getting the house started
+               Closing Shift = getting the house ready for tomorrow
+               ================================================= -->
+
+          <section
+            class="daily-live-shift-panel"
+            aria-label="Personal Opening and Closing shifts"
+          >
+
+
+            <!-- Switch between my Opening and Closing Shift -->
+            <div class="daily-live-shift-nav-wrap">
+
+
+              <div class="daily-live-current-shift">
+
+                <span>
+                  CURRENT VIEW
+                </span>
+
+                <strong id="dailyShiftViewName">
+                  Opening Shift
+                </strong>
+
+              </div>
+
+
+
+              <div
+                class="daily-live-shift-nav"
+                role="tablist"
+                aria-label="Daily Rhythm shifts"
+              >
+
+
+                <button
+                  class="daily-shift-view-tab"
+                  id="openingShiftViewTab"
+                  type="button"
+                  role="tab"
+                  data-shift-view="opening"
+                  aria-controls="openingShiftCard"
+                  aria-selected="false"
+                >
+
+                  <span>
+
+                    <strong>
+                      Opening
+                    </strong>
+
+                    <small>
+                      Morning rhythm
+                    </small>
+
+                  </span>
+
+
+                  <b id="openingShiftTabCount">
+                    0 left
+                  </b>
+
+                </button>
+
+
+
+                <button
+                  class="daily-shift-view-tab"
+                  id="closingShiftViewTab"
+                  type="button"
+                  role="tab"
+                  data-shift-view="closing"
+                  aria-controls="closingShiftCard"
+                  aria-selected="false"
+                >
+
+                  <span>
+
+                    <strong>
+                      Closing
+                    </strong>
+
+                    <small>
+                      Evening rhythm
+                    </small>
+
+                  </span>
+
+
+                  <b id="closingShiftTabCount">
+                    0 left
+                  </b>
+
+                </button>
+
+
+              </div>
+
+            </div>
+
+
+
+            <div class="daily-live-shift-stack">
+
+
+              <!-- =================================================
+                   OPENING SHIFT
+
+                   This is my morning rhythm.
+
+                   These are the little things I want done to get
+                   the house started for the day.
+                   ================================================= -->
+
+              <section
+                class="daily-shift-column opening"
+                id="openingShiftCard"
+                role="tabpanel"
+                aria-labelledby="openingShiftViewTab"
+              >
+
+
+                <header class="daily-shift-column-head">
+
+
+                  <span
+                    class="daily-shift-icon daily-shift-icon-sunrise"
+                    aria-hidden="true"
+                  >
+
+                    <svg viewBox="0 0 36 36">
+
+                      <path
+                        class="shift-horizon"
+                        d="M6 25 H30"
+                      ></path>
+
+                      <path
+                        class="shift-sun-arc"
+                        d="M11 25 A7 7 0 0 1 25 25"
+                      ></path>
+
+                      <path
+                        d="M18 6 V11 M8.5 11.5 L12 15 M27.5 11.5 L24 15 M5 19 H10 M26 19 H31"
+                      ></path>
+
+                      <path
+                        class="shift-wave"
+                        d="M9 29 C12 27.8 14 27.8 17 29 C20 30.2 22 30.2 27 29"
+                      ></path>
+
+                    </svg>
+
+                  </span>
+
+
+
+                  <div class="daily-shift-column-copy">
+
+                    <span>
+
+                      <span id="openingShiftOwnerLabel">
+                        YOUR
+                      </span>
+
+                      MORNING RHYTHM
+
+                      <b
+                        class="daily-shift-now"
+                        id="openingShiftNow"
+                        hidden
+                      >
+                        NOW
+                      </b>
+
+                    </span>
+
+
+                    <h2>
+                      Opening Shift
+                    </h2>
+
+
+                    <p>
+                      Small resets that make the home easier
+                      to move through.
+                    </p>
+
+                  </div>
+
+
+
+                  <!-- My Opening Shift progress -->
+                  <div class="daily-shift-score-block">
+
+                    <strong
+                      class="daily-shift-column-score"
+                      id="openingShiftProgress"
+                    >
+                      0%
+                    </strong>
+
+                    <span id="openingShiftRemaining">
+                      Loading routine…
+                    </span>
+
+                  </div>
+
+                </header>
+
+
+
+                <div class="daily-shift-column-track">
+                  <span id="openingShiftProgressBar"></span>
+                </div>
+
+
+
+                <!--
+                  My JavaScript puts my Opening Shift tasks here.
+
+                  I should not manually add task cards inside
+                  this container.
+                -->
+                <div
+                  class="daily-visible-task-list"
+                  id="openingTaskList"
+                ></div>
+
+
+
+                <!-- =================================================
+                     ADD TO MY OPENING SHIFT
+
+                     This lets me quickly add another task
+                     to my morning.
+                     ================================================= -->
+
+                <div
+                  class="daily-inline-composer opening-composer"
+                  data-shift-composer="opening"
+                >
+
+
+                  <div class="daily-inline-composer-head">
+
+
+                    <div class="daily-inline-composer-title">
+
+                      <span
+                        class="daily-inline-plus"
+                        aria-hidden="true"
+                      >
+                        ＋
+                      </span>
+
+
+          
+                      <div>
+
+                        <small>
+                          ADD TO YOUR MORNING
+                        </small>
+
+                        <strong>
+                          Add a small Opening task
+                        </strong>
+
+                      </div>
+
+                    </div>
+
+
+                    <span class="daily-inline-reward">
+                      ☀ + SUNLIGHT
+                    </span>
+
+                  </div>
+
+
+
+                  <label
+                    class="daily-composer-field daily-composer-task-field"
+                    for="openingNewTask"
+                  >
+
+                    <span>
+                      What would make the morning easier?
+                    </span>
+
+
+                    <input
+                      class="app-input"
+                      id="openingNewTask"
+                      type="text"
+                      maxlength="100"
+                      autocomplete="off"
+                      placeholder="Ex: Unload the dishwasher"
+                      data-shift-task-input="opening"
+                    />
+
+                  </label>
+
+
+
+                  <div class="daily-inline-composer-options">
+
+
+                    <!-- Where in my home does this task belong? -->
+                    <label
+                      class="daily-composer-field"
+                      for="openingNewTaskArea"
+                    >
+
+                      <span>
+                        Where in the home?
+                      </span>
+
+
+                      <select
+                        class="app-select"
+                        id="openingNewTaskArea"
+                        aria-label="Opening task area"
+                      >
+
+                        <option value="">
+                          Whole Home
+                        </option>
+
+                      </select>
+
+                    </label>
+
+
+
+                    <!-- I can decide if I want this back every day -->
+                    <label class="daily-inline-repeat">
+
+                      <input
+                        id="openingNewTaskRecurring"
+                        type="checkbox"
+                        checked
+                      />
+
+
+                      <span>
+
+                        <strong>
+                          Repeat daily
+                        </strong>
+
+                        <small>
+                          Keep it in my Opening Shift
+                        </small>
+
+                      </span>
+
+                    </label>
+
+
+
+                    <button
+                      class="button button-primary daily-add-task-button"
+                      type="button"
+                      data-add-shift-task="opening"
+                    >
+
+                      <span>
+                        Add task
+                      </span>
+
+                      <b aria-hidden="true">
+                        →
+                      </b>
+
+                    </button>
+
+
+                  </div>
+
+                </div>
+
+              </section>
+
+
+
+              <!-- =================================================
+                   CLOSING SHIFT
+
+                   This is my evening reset.
+
+                   The goal is to make tomorrow easier before
+                   I go to bed.
+                   ================================================= -->
+
+              <section
+                class="daily-shift-column closing"
+                id="closingShiftCard"
+                role="tabpanel"
+                aria-labelledby="closingShiftViewTab"
+              >
+
+
+                <header class="daily-shift-column-head">
+
+
+                  <span
+                    class="daily-shift-icon daily-shift-icon-moon"
+                    aria-hidden="true"
+                  >
+
+                    <svg viewBox="0 0 36 36">
+
+                      <path
+                        class="shift-moon"
+                        d="M25.5 23.6 A10 10 0 0 1 13 10.5 A10.5 10.5 0 1 0 25.5 23.6 Z"
+                      ></path>
+
+                      <path
+                        class="shift-star"
+                        d="M26 9 v4 M24 11 h4 M29.5 16 v3 M28 17.5 h3"
+                      ></path>
+
+                    </svg>
+
+                  </span>
+
+
+
+                  <div class="daily-shift-column-copy">
+
+                    <span>
+
+                      <span id="closingShiftOwnerLabel">
+                        YOUR
+                      </span>
+
+                      EVENING RHYTHM · STARTS 5 PM
+
+                      <b
+                        class="daily-shift-now"
+                        id="closingShiftNow"
+                        hidden
+                      >
+                        NOW
+                      </b>
+
+                    </span>
+
+
+                    <h2>
+                      Closing Shift
+                    </h2>
+
+
+                    <p>
+                      Leave tomorrow a home that already
+                      feels a little lighter.
+                    </p>
+
+                  </div>
+
+
+
+                  <!-- My Closing Shift progress -->
+                  <div class="daily-shift-score-block">
+
+                    <strong
+                      class="daily-shift-column-score"
+                      id="closingShiftProgress"
+                    >
+                      0%
+                    </strong>
+
+                    <span id="closingShiftRemaining">
+                      Loading routine…
+                    </span>
+
+                  </div>
+
+                </header>
+
+
+
+                <div class="daily-shift-column-track">
+                  <span id="closingShiftProgressBar"></span>
+                </div>
+
+
+
+                <!--
+                  My JavaScript puts my Closing Shift tasks here.
+
+                  I should not manually add task cards inside
+                  this container.
+                -->
+                <div
+                  class="daily-visible-task-list"
+                  id="closingTaskList"
+                ></div>
+
+
+
+                <!-- =================================================
+                     ADD TO MY CLOSING SHIFT
+
+                     This lets me quickly add something to
+                     my evening routine.
+                     ================================================= -->
+
+                <div
+                  class="daily-inline-composer closing-composer"
+                  data-shift-composer="closing"
+                >
+
+
+                  <div class="daily-inline-composer-head">
+
+
+                    <div class="daily-inline-composer-title">
+
+                      <span
+                        class="daily-inline-plus"
+                        aria-hidden="true"
+                      >
+                        ＋
+                      </span>
+
+
+                      <div>
+
+                        <small>
+                          ADD TO YOUR EVENING
+                        </small>
+
+                        <strong>
+                          Add a small Closing task
+                        </strong>
+
+                      </div>
+
+                    </div>
+
+
+                    <span class="daily-inline-reward">
+                      💧 + WATER
+                    </span>
+
+                  </div>
+
+
+
+                  <label
+                    class="daily-composer-field daily-composer-task-field"
+                    for="closingNewTask"
+                  >
+
+                    <span>
+                      What would make tomorrow easier?
+                    </span>
+
+
+                    <input
+                      class="app-input"
+                      id="closingNewTask"
+                      type="text"
+                      maxlength="100"
+                      autocomplete="off"
+                      placeholder="Ex: Reset the kitchen counters"
+                      data-shift-task-input="closing"
+                    />
+
+                  </label>
+
+
+
+                  <div class="daily-inline-composer-options">
+
+
+                    <!-- Where in my home does this task belong? -->
+                    <label
+                      class="daily-composer-field"
+                      for="closingNewTaskArea"
+                    >
+
+                      <span>
+                        Where in the home?
+                      </span>
+
+
+                      <select
+                        class="app-select"
+                        id="closingNewTaskArea"
+                        aria-label="Closing task area"
+                      >
+
+                        <option value="">
+                          Whole Home
+                        </option>
+
+                      </select>
+
+                    </label>
+
+
+
+                    <!-- I can decide if I want this back every day -->
+                    <label class="daily-inline-repeat">
+
+                      <input
+                        id="closingNewTaskRecurring"
+                        type="checkbox"
+                        checked
+                      />
+
+
+                      <span>
+
+                        <strong>
+                          Repeat daily
+                        </strong>
+
+                        <small>
+                          Keep it in my Closing Shift
+                        </small>
+
+                      </span>
+
+                    </label>
+
+
+
+                    <button
+                      class="button button-primary daily-add-task-button"
+                      type="button"
+                      data-add-shift-task="closing"
+                    >
+
+                      <span>
+                        Add task
+                      </span>
+
+                      <b aria-hidden="true">
+                        →
+                      </b>
+
+                    </button>
+
+
+                  </div>
+
+                </div>
+
+              </section>
+
+            </div>
+
+          </section>
+
+        </div>
+
+      </div>
+
+    </article>
+
+
+
+    <!-- =======================================================
+         3. FOCUS TIMER
+
+         I added this so I can pick one task, give myself a
+         small amount of time, and focus on getting that one
+         thing done.
+         ======================================================= -->
+
+    <section
+      class="daily-focus-section"
+      aria-label="Focus timer"
+    >
+
+      <article
+        class="daily-timer-card"
+        id="dailyTimerCard"
+      >
+
+
+        <div class="daily-card-heading">
+
+          <div>
+
+            <span class="daily-section-kicker">
+              FOCUS TIMER
+            </span>
+
+
+            <h2>
+              Give it a little time.
+            </h2>
+
+
+            <p>
+              Choose a task from your active shift,
+              set a small window, and focus on one thing.
+            </p>
+
+          </div>
+
+
+          <span
+            class="daily-timer-status"
+            id="dailyTimerStatus"
+          >
+            READY
+          </span>
+
+        </div>
+
+
+
+        <div class="daily-timer-console">
+
+
+          <!-- My main timer display -->
+          <div class="daily-timer-display-panel">
+
+
+            <div class="daily-timer-console-label">
+
+              <span>
+                FOCUS CONSOLE
+              </span>
+
+              <b id="dailyTimerMode">
+                STANDBY
+              </b>
+
+            </div>
+
+
+
+            <div class="daily-timer-orbit-wrap">
+
+              <div
+                class="daily-timer-orbit"
+                id="dailyTimerRing"
+                style="--timer-progress: 0deg;"
+              >
+
+                <div class="daily-timer-ticks"></div>
+
+
+                <div class="daily-timer-core">
+
+                  <span class="daily-timer-core-kicker">
+                    TIME REMAINING
+                  </span>
+
+                  <strong id="dailyTimerDisplay">
+                    10:00
+                  </strong>
+
+                  <span id="dailyTimerLabelDisplay">
+                    FOCUS SESSION
+                  </span>
+
+                  <small id="dailyTimerProgressText">
+                    0% COMPLETE
+                  </small>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+
+            <div
+              class="daily-timer-signal-row"
+              aria-hidden="true"
+            >
+
+              <span class="signal-dot active"></span>
+
+              <span>
+                HOME OS FOCUS
+              </span>
+
+              <i></i>
+
+              <span>
+                LOCAL TIMER
+              </span>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- My timer controls -->
+          <div class="daily-timer-controls">
+
+
+            <!-- I can choose one of my unfinished tasks here -->
+            <label
+              class="daily-focus-field"
+              for="dailyTimerTaskSelect"
+            >
+
+              <span>
+                WHAT ARE YOU WORKING ON?
+              </span>
+
+
+              <select
+                class="app-select daily-focus-task-select"
+                id="dailyTimerTaskSelect"
+                aria-describedby="dailyTimerTaskSelectHint"
+              >
+
+                <option value="">
+                  Loading your current shift…
+                </option>
+
+              </select>
+
+
+              <small
+                class="daily-focus-task-hint"
+                id="dailyTimerTaskSelectHint"
+              >
+                Choose an unfinished task from your current shift.
+              </small>
+
+            </label>
+
+
+
+            <!-- Quick timer options so I do not have to type a time -->
+            <div class="daily-timer-control-group">
+
+
+              <div class="daily-timer-control-label">
+
+                <span>
+                  QUICK SET
+                </span>
+
+                <small>
+                  Choose a focus window
+                </small>
+
+              </div>
+
+
+
+              <div
+                class="daily-time-presets"
+                aria-label="Timer presets"
+              >
+
+                <button
+                  type="button"
+                  data-timer-minutes="5"
+                >
+                  05
+                </button>
+
+
+                <button
+                  class="selected"
+                  type="button"
+                  data-timer-minutes="10"
+                >
+                  10
+                </button>
+
+
+                <button
+                  type="button"
+                  data-timer-minutes="15"
+                >
+                  15
+                </button>
+
+
+                <button
+                  type="button"
+                  data-timer-minutes="20"
+                >
+                  20
+                </button>
+
+
+                <button
+                  type="button"
+                  data-timer-minutes="30"
+                >
+                  30
+                </button>
+
+              </div>
+
+            </div>
+
+
+
+            <!-- I can also set my own time here -->
+            <div class="daily-custom-time-row">
+
+
+              <div>
+
+                <span>
+                  CUSTOM WINDOW
+                </span>
+
+                <small>
+                  1–180 minutes
+                </small>
+
+              </div>
+
+
+
+              <label for="dailyCustomMinutes">
+
+                <input
+                  id="dailyCustomMinutes"
+                  type="number"
+                  inputmode="numeric"
+                  min="1"
+                  max="180"
+                  placeholder="25"
+                />
+
+                <span>
+                  MIN
+                </span>
+
+              </label>
+
+            </div>
+
+
+
+            <!-- My Start, Complete, and Reset controls -->
+            <div class="daily-timer-actions">
+
+
+              <button
+                class="button button-primary daily-timer-primary"
+                id="dailyTimerStartButton"
+                type="button"
+              >
+
+                <span
+                  class="timer-action-dot"
+                  aria-hidden="true"
+                ></span>
+
+                <span>
+                  Start Timer
+                </span>
+
+              </button>
+
+
+
+              <button
+                class="daily-timer-complete-early"
+                id="dailyTimerCompleteButton"
+                type="button"
+                hidden
+              >
+
+                <span aria-hidden="true">
+                  ✓
+                </span>
+
+                <span id="dailyTimerCompleteButtonLabel">
+                  Task Complete
+                </span>
+
+              </button>
+
+
+
+              <button
+                class="button button-secondary daily-timer-reset"
+                id="dailyTimerResetButton"
+                type="button"
+              >
+                Reset
+              </button>
+
+            </div>
+
+
+
+            <div class="daily-timer-task-sync">
+
+              <span aria-hidden="true">
+                ⌁
+              </span>
+
+              <p id="dailyTimerHint">
+                Choose a task above, or tap the timer icon
+                on any task to load it here.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!--
+          I show this after a focus session is finished.
+        -->
+        <div
+          class="daily-timer-celebration"
+          id="dailyTimerCelebration"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+
+
+          <div
+            class="daily-timer-celebration-mark"
+            aria-hidden="true"
+          >
+            ✓
+          </div>
+
+
+
+          <div class="daily-timer-celebration-copy">
+
+            <span>
+              FOCUS COMPLETE
+            </span>
+
+            <strong id="dailyTimerCongratsTitle">
+              Congratulations!
+            </strong>
+
+            <p id="dailyTimerCongratsMessage">
+              You gave this task focused time. Nice work.
+            </p>
+
+          </div>
+
+
+
+          <div
+            class="daily-timer-celebration-line"
+            aria-hidden="true"
+          ></div>
+
+        </div>
+
+
+        <!-- My focus timer confetti -->
+        <div
+          class="daily-timer-confetti-burst"
+          id="dailyTimerConfetti"
+          aria-hidden="true"
+        ></div>
+
+      </article>
+
+    </section>
+
+
+
+    <!-- =======================================================
+         4. LAUNDRY FLOW
+
+         I wanted laundry visible from my main page without
+         having to open the full Laundry page every time.
+
+         This gives me a quick look at active loads and lets
+         me start another one from here.
+         ======================================================= -->
+
+    <section
+      class="daily-laundry-flow"
+      id="dailyLaundryFlow"
+      data-stage="idle"
+      aria-labelledby="dailyLaundryTitle"
+    >
+
+
+      <!-- This shows me what is currently happening with laundry -->
+      <div class="daily-laundry-heading-block">
+
+        <span class="daily-section-kicker">
+          LAUNDRY FLOW
+        </span>
+
+
+        <div class="daily-laundry-title-row">
+
+          <h2 id="dailyLaundryTitle">
+            No active loads
+          </h2>
+
+          <span
+            class="daily-laundry-state"
+            id="dailyLaundryState"
+          >
+            IDLE
+          </span>
+
+        </div>
+
+
+        <p
+          class="daily-laundry-message"
+          id="dailyLaundryMessage"
+        >
+          Laundry Flow is ready when you are.
+        </p>
+
+      </div>
+
+
+
+      <!-- My current laundry stage gets built here -->
+      <div class="daily-laundry-progress-block">
+
+        <div
+          class="daily-laundry-stage-track"
+          id="dailyLaundryStageTrack"
+          aria-label="Laundry stage progress"
+        ></div>
+
+      </div>
+
+
+
+      <!-- My quick laundry controls -->
+      <div class="daily-laundry-actions">
+
+        <span
+          class="daily-laundry-count"
+          id="dailyLaundryCount"
+        >
+          0 ACTIVE
+        </span>
+
+
+        <button
+          class="button button-primary daily-laundry-primary"
+          id="dailyLaundryActionButton"
+          type="button"
+          data-laundry-action="start"
+        >
+          + Start A Load
+        </button>
+
+
+        <button
+          class="daily-laundry-new"
+          id="dailyLaundryNewLoadButton"
+          type="button"
+          hidden
+        >
+          + New load
+        </button>
+
+
+        <a
+          class="daily-laundry-open"
+          href="laundry.html"
+        >
+          Open Laundry →
+        </a>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =======================================================
+         5. QUICK SHOPPING
+
+         I wanted somewhere I could quickly type an item the
+         second I realize we need it instead of having to open
+         Inventory first.
+
+         Everything I add here still goes to my shared
+         shopping list.
+         ======================================================= -->
+
+    <section class="daily-tools-grid daily-tools-grid-single">
+
+
+      <section class="daily-bottom-tool daily-shopping-bottom">
+
+
+        <div class="daily-bottom-tool-heading">
+
+          <div>
+
+            <span class="daily-tool-kicker">
+              QUICK SHOPPING
+            </span>
+
+
+            <h2>
+              Need something?
+            </h2>
+
+
+            <p>
+              Add it the moment you think of it.
+              HOME OS keeps one shared shopping list.
+            </p>
+
+          </div>
+
+
+          <span
+            class="daily-count-pill"
+            id="dailyShoppingCount"
+          >
+            0 ITEMS
+          </span>
+
+        </div>
+
+
+
+        <!-- Quick add for my shopping list -->
+        <div class="daily-shopping-bottom-add">
+
+          <input
+            class="app-input daily-tool-input"
+            id="newShoppingItem"
+            type="text"
+            maxlength="100"
+            autocomplete="off"
+            placeholder="Milk, paper plates, batteries…"
+          />
+
+
+          <button
+            class="button button-primary"
+            id="addShoppingItemButton"
+            type="button"
+          >
+            Add
+          </button>
+
+        </div>
+
+
+
+        <!-- My JavaScript puts my shopping list items here -->
+        <div
+          class="daily-shopping-list daily-shopping-bottom-list"
+          id="dailyShoppingList"
+        ></div>
+
+
+
+        <a
+          class="daily-shopping-open-list"
+          href="inventory.html#shoppingSection"
+        >
+          Open Full Shopping List
+
+          <span aria-hidden="true">
+            →
+          </span>
+        </a>
+
+      </section>
+
+    </section>
+
+  </main>
+
+
+
+  <!-- =========================================================
+       6. START A LAUNDRY LOAD
+
+       This popup lets me name a load and start it without
+       leaving my Daily Rhythm page.
+       ========================================================= -->
+
+  <dialog
+    class="daily-laundry-dialog"
+    id="dailyLaundryDialog"
+    aria-labelledby="dailyLaundryDialogTitle"
+  >
+
+
+    <div class="daily-laundry-dialog-shell">
+
+
+      <div class="daily-laundry-dialog-head">
+
+        <div>
+
+          <span>
+            LAUNDRY FLOW
+          </span>
+
+          <h2 id="dailyLaundryDialogTitle">
+            Start a laundry load
+          </h2>
+
+        </div>
+
+
+        <button
+          class="daily-laundry-dialog-close"
+          id="dailyLaundryCancelButton"
+          type="button"
+          aria-label="Close laundry dialog"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+
+      <p>
+        Name the load the way you actually sort laundry.
+        HOME OS starts it in Wash and keeps it synced
+        with Laundry Flow.
+      </p>
+
+
+
+      <label
+        class="daily-laundry-field"
+        for="dailyLaundryName"
+      >
+
+        <span>
+          LOAD NAME
+        </span>
+
+
+        <input
+          class="app-input"
+          id="dailyLaundryName"
+          type="text"
+          list="dailyLaundryNameSuggestions"
+          maxlength="80"
+          autocomplete="off"
+          placeholder="Darks, towels, kids clothes, bedding..."
+        />
+
+      </label>
+
+
+
+      <!-- Some of the load names I use most often -->
+      <datalist id="dailyLaundryNameSuggestions">
+
+        <option value="Darks"></option>
+        <option value="Lights"></option>
+        <option value="Whites"></option>
+        <option value="Kids Clothes"></option>
+        <option value="Towels"></option>
+        <option value="Bedding"></option>
+
+      </datalist>
+
+
+
+      <div class="daily-laundry-dialog-actions">
+
+        <button
+          class="button button-secondary"
+          id="dailyLaundryCancelButtonSecondary"
+          type="button"
+        >
+          Cancel
+        </button>
+
+
+        <button
+          class="button button-primary"
+          id="dailyLaundryStartButton"
+          type="button"
+        >
+          Start Washer →
+        </button>
+
+      </div>
+
+    </div>
+
+  </dialog>
+
+
+
+  <!-- =========================================================
+       7. CELEBRATIONS
+
+       I use this for the little HOME OS celebration that
+       appears when I finish a task or reach one of my
+       daily goals.
+       ========================================================= -->
+
+  <div
+    class="daily-celebration-layer"
+    id="dailyCelebrationLayer"
+    aria-live="polite"
+    hidden
+  >
+
+
+    <!-- My completion confetti -->
+    <div
+      class="daily-confetti"
+      aria-hidden="true"
+    >
+
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+
+    </div>
+
+
+
+    <section
+      class="daily-celebration-card"
+      role="status"
+    >
+
+      <span
+        class="daily-celebration-icon"
+        id="dailyCelebrationIcon"
+      >
+        ✦
+      </span>
+
+
+      <span
+        class="daily-celebration-kicker"
+        id="dailyCelebrationKicker"
+      >
+        NICE WORK
+      </span>
+
+
+      <h2 id="dailyCelebrationTitle">
+        Task complete.
+      </h2>
+
+
+      <p id="dailyCelebrationMessage">
+        Your home just got a little lighter.
+      </p>
+
+
+      <button
+        id="dailyCelebrationClose"
+        type="button"
+      >
+        Keep going →
+      </button>
+
+    </section>
+
+  </div>
+
+
+
+  <!-- =========================================================
+       GLOBAL FOOTER
+
+       shell.js builds my shared HOME OS footer here so I do not
+       have to recreate it on every page.
+       ========================================================= -->
+
+  <footer id="appFooter"></footer>
+
+
+
+  <!-- =========================================================
+       APP MESSAGES
+
+       I use this for my quick save, success, and error messages.
+       ========================================================= -->
+
+  <div
+    class="app-toast"
+    id="appToast"
+    aria-live="polite"
+  ></div>
+
+
+
+  <!-- =========================================================
+       MY JAVASCRIPT FILES
+
+       I want to keep these in this order because some of my
+       files depend on the ones loaded before them.
+
+       My order is:
+
+       1. Supabase
+       2. HOME OS core files
+       3. My shared navigation
+       4. My services
+       5. My reusable components
+       6. My Rhythm Companion
+       7. This page's Daily Rhythm controller
+       ========================================================= -->
+
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+  <!-- My HOME OS core -->
+  <script src="assets/js/core/config.js"></script>
+  <script src="assets/js/core/supabase-client.js"></script>
+  <script src="assets/js/core/auth.js"></script>
+  <script src="assets/js/core/session.js"></script>
+  <script src="assets/js/core/permissions.js"></script>
+
+
+  <!-- My shared navigation and shell -->
+  <script src="assets/js/components/shell.js"></script>
+
+
+  <!-- My data services -->
+  <script src="assets/js/services/task-service.js"></script>
+  <script src="assets/js/services/daily-service.js"></script>
+
+
+  <!-- My reusable components -->
+  <script src="assets/js/components/person-picker.js"></script>
+  <script src="assets/js/components/task-editor.js"></script>
+
+
+  <!-- My Rhythm Companion -->
+  <script src="https://cdn.jsdelivr.net/processing.js/1.4.8/processing.min.js"></script>
+
+  <script src="assets/js/components/rhythm-groot-sketch.js"></script>
+
+  <script src="assets/js/components/rhythm-companion.js"></script>
+
+
+  <!-- =========================================================
+       NOTE TO MYSELF
+
+       This page is index.html now, but I am NOT renaming daily.js.
+
+       "Daily" is the name of this feature inside HOME OS, so my
+       daily.js, daily.css, daily-service.js, daily IDs, and daily
+       classes can stay exactly how they are.
+       ========================================================= -->
+
+  <script src="assets/js/pages/daily.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<!--
+============================================================================
+    HomeOS // Calendar
+
+    Household calendar for events, date navigation
+    and live HomeOS activity.
+
+    Calendar data stays in its services; this page only handles the view.
+============================================================================
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar | HOME OS</title>
+    <meta name="description" content="HOME OS household calendar">
+<link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/calendar.css">
+</head>
+<body data-page="calendar" data-calendar-season="fall">
+    <header id="appHeader"></header>
+
+    <!-- 01 // SEASONAL ATMOSPHERE -->
+    <div class="calendar-season-atmosphere" aria-hidden="true">
+        <div class="calendar-season-glow calendar-season-glow-one"></div>
+        <div class="calendar-season-glow calendar-season-glow-two"></div>
+        <div class="calendar-season-particles" id="calendarSeasonParticles"></div>
+    </div>
+
+    <!-- 02 // CALENDAR COMMAND CENTER -->
+    <main class="app-main calendar-main">
+        <section class="matrix-dashboard-header" aria-labelledby="calendarTitle">
+            <div class="matrix-identity">
+                <div class="calendar-live-kicker">
+                    <span class="calendar-live-dot" aria-hidden="true"></span>
+                    <span id="calendarLiveKicker">HOME OS // HOUSEHOLD TIME MATRIX // LIVE</span>
+                </div>
+
+                <h1 id="calendarTitle">Calendar <em>Matrix</em></h1>
+                <p id="calendarHeroCopy">
+                    One live view of the moments that move your household — birthdays,
+                    groceries, appointments, school, sports, church, hosting and family plans.
+                </p>
+
+                <div class="matrix-date-readout" aria-label="Today's date">
+                    <span id="calendarPulseWeekday">TODAY</span>
+                    <strong id="calendarPulseDay">21</strong>
+                    <small id="calendarPulseMonth">SEPTEMBER 2026</small>
+                </div>
+            </div>
+
+            <div class="matrix-header-actions">
+                <div class="calendar-season-chip" id="calendarSeasonChip" aria-live="polite">
+                    <span class="calendar-season-chip-icon" id="calendarSeasonIcon" aria-hidden="true">🍂</span>
+                    <span>
+                        <strong id="calendarSeasonName">FALL MODE</strong>
+                        <small id="calendarSeasonCopy">Seasonal atmosphere synced with Seasons</small>
+                    </span>
+                </div>
+
+                <button class="matrix-add-event" id="calendarAddEvent" type="button">
+                    <span aria-hidden="true">＋</span>
+                    <span><strong>Add Event</strong><small>Create a household moment</small></span>
+                </button>
+            </div>
+        </section>
+
+        <section class="matrix-home-pulse" aria-label="Live HOME OS home pulse">
+            <header class="matrix-home-pulse-heading">
+                <div>
+                    <span class="matrix-card-kicker">HOME PULSE // LIVE HOUSEHOLD STATE</span>
+                    <h2>Home + time, at a glance.</h2>
+                </div>
+                <span class="matrix-home-pulse-live"><i aria-hidden="true"></i> SYNCED</span>
+            </header>
+
+            <div class="matrix-home-pulse-grid">
+                <article class="matrix-pulse-signal matrix-pulse-rhythm">
+                    <header>
+                        <div>
+                            <span>DAILY RHYTHM</span>
+                            <h3>Today</h3>
+                        </div>
+                        <a href="index.html">Open →</a>
+                    </header>
+                    <div class="matrix-pulse-value">
+                        <strong id="calendarRhythmPercent">0%</strong>
+                        <span id="calendarRhythmStatus">READY</span>
+                    </div>
+                    <p id="calendarRhythmSummary">Syncing today’s household rhythm…</p>
+                    <div class="matrix-health-track" aria-label="Daily Rhythm completion">
+                        <span id="calendarRhythmProgressBar"></span>
+                    </div>
+                    <footer>
+                        <span id="calendarRhythmTasks">0 / 0 tasks complete</span>
+                        <span id="calendarRhythmShifts">Opening 0% · Closing 0%</span>
+                    </footer>
+                </article>
+
+                <article class="matrix-pulse-signal matrix-pulse-cleaning">
+                    <header>
+                        <div>
+                            <span>CLEANING HEALTH</span>
+                            <h3>Whole home</h3>
+                        </div>
+                        <a href="cleaning.html">Open →</a>
+                    </header>
+                    <div class="matrix-pulse-value">
+                        <strong id="calendarCleaningPercent">0%</strong>
+                        <span id="calendarCleaningStatus">SYNCING</span>
+                    </div>
+                    <p id="calendarCleaningSummary">Reading whole-home Cleaning care…</p>
+                    <div class="matrix-health-track" aria-label="Whole-home Cleaning care coverage">
+                        <span id="calendarCleaningProgressBar"></span>
+                    </div>
+                    <footer>
+                        <span id="calendarCleaningAreas">0 / 0 areas cared for</span>
+                        <span id="calendarCleaningAttention">0 need attention</span>
+                    </footer>
+                </article>
+
+                <article class="matrix-pulse-signal matrix-pulse-seasonal">
+                    <header>
+                        <div>
+                            <span>SEASONAL RESET</span>
+                            <h3 id="calendarSeasonalTitle">Fall Refresh</h3>
+                        </div>
+                        <a id="calendarSeasonalOpen" href="seasons/fall.html">Open →</a>
+                    </header>
+                    <div class="matrix-pulse-value">
+                        <strong id="calendarSeasonalPercent">0%</strong>
+                        <span id="calendarSeasonalStatus">READY</span>
+                    </div>
+                    <p id="calendarSeasonalCopy">HOME OS is reading the current seasonal clean directly from Seasons.</p>
+                    <div class="matrix-seasonal-track" aria-label="Seasonal cleaning progress">
+                        <span id="calendarSeasonalProgressBar"></span>
+                    </div>
+                    <footer>
+                        <span id="calendarSeasonalTasks">0 / 0 seasonal tasks complete</span>
+                    </footer>
+                </article>
+
+                <article class="matrix-pulse-signal matrix-pulse-tempo">
+                    <header>
+                        <div>
+                            <span>NEXT 7 DAYS</span>
+                            <h3>Time load</h3>
+                        </div>
+                        <strong id="calendarTempoTotal">0</strong>
+                    </header>
+                    <p id="calendarTempoHeadline">Your household timeline is clear.</p>
+                    <div class="matrix-tempo-bars" id="calendarTempoBars" aria-label="Events over the next seven days"></div>
+                </article>
+            </div>
+        </section>
+
+        <section class="calendar-kid-mode-banner" id="calendarKidModeBanner" hidden>
+            <div class="calendar-kid-mode-avatar" id="calendarKidModeAvatar" aria-hidden="true">K</div>
+            <div>
+                <span>KID VIEWS // PERSONAL VIEW</span>
+                <strong id="calendarKidModeName">Kid Calendar</strong>
+                <small id="calendarKidModeCopy">Family-wide plans and events assigned to this child are shown here.</small>
+            </div>
+            <button type="button" id="calendarExitKidMode">← Back to Home Matrix</button>
+        </section>
+
+        <section class="calendar-workspace calendar-matrix-workspace">
+            <div class="calendar-board-shell matrix-calendar-panel">
+                <header class="calendar-command-bar matrix-command-bar">
+                    <div class="calendar-navigation">
+                        <button class="calendar-icon-button" id="calendarPrev" type="button" aria-label="Previous period">←</button>
+                        <button class="calendar-today-button" id="calendarToday" type="button">Today</button>
+                        <button class="calendar-icon-button" id="calendarNext" type="button" aria-label="Next period">→</button>
+                        <div class="calendar-period-title">
+                            <span id="calendarPeriodKicker">MONTH VIEW</span>
+                            <strong id="calendarPeriodTitle">September 2026</strong>
+                        </div>
+                    </div>
+
+                    <div class="calendar-command-actions">
+                        <div class="calendar-view-switch" role="group" aria-label="Calendar view">
+                            <button type="button" data-calendar-view="month" class="active">Month</button>
+                            <button type="button" data-calendar-view="week">Week</button>
+                            <button type="button" data-calendar-view="day">Day</button>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="calendar-board" id="calendarBoard" aria-live="polite"></div>
+            </div>
+
+            <section class="calendar-agenda-panel matrix-intelligence-rail calendar-intelligence-deck" aria-label="Calendar intelligence">
+                <div class="matrix-rail-status calendar-intelligence-status">
+                    <span><i aria-hidden="true"></i> HOME + TIME</span>
+                    <strong id="calendarPulseStatus">LIVE</strong>
+                </div>
+
+                <div class="calendar-intelligence-top">
+                    <section class="matrix-day-panel calendar-intelligence-day" aria-labelledby="calendarAgendaDate">
+                        <div class="calendar-agenda-heading">
+                            <span class="ui-kicker">SELECTED DAY</span>
+                            <h2 id="calendarAgendaDate">Today</h2>
+                            <p id="calendarAgendaSummary">Choose any day above to inspect its timeline.</p>
+                        </div>
+                        <div class="calendar-agenda-list" id="calendarAgendaList"></div>
+                    </section>
+
+                    <section class="calendar-upcoming-block matrix-upcoming-panel calendar-intelligence-upcoming" aria-label="Upcoming events">
+                        <div class="calendar-upcoming-heading">
+                            <div>
+                                <span>NEXT UP</span>
+                                <strong>After this day</strong>
+                            </div>
+                            <small>Next 7 days</small>
+                        </div>
+                        <div id="calendarUpcomingList"></div>
+                    </section>
+                </div>
+
+                <div class="calendar-household-deck">
+                    <section class="matrix-household-command calendar-household-section calendar-household-adults" aria-labelledby="calendarAdultsTitle">
+                        <div class="matrix-household-heading calendar-household-heading">
+                            <div>
+                                <span>HOUSEHOLD</span>
+                                <strong id="calendarAdultsTitle">Adult calendars</strong>
+                            </div>
+                            <button type="button" id="calendarClearPersonFocus" hidden>Show everyone</button>
+                        </div>
+                        <p class="matrix-household-help">Focus a person or change the color used for their events.</p>
+                        <div class="matrix-adult-member-list" id="calendarAdultMembers"></div>
+                    </section>
+
+                    <section class="matrix-kids-command calendar-household-section calendar-household-kids" aria-labelledby="calendarKidsTitle">
+                        <div class="matrix-household-heading calendar-household-heading">
+                            <div>
+                                <span>KID VIEWS</span>
+                                <strong id="calendarKidsTitle">Kid calendars</strong>
+                            </div>
+                        </div>
+                        <p class="matrix-household-help">Open a simpler child view or change their event color.</p>
+                        <div class="matrix-kid-member-list" id="calendarKidMembers"></div>
+                    </section>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <dialog class="calendar-dialog" id="calendarEventDialog">
+        <form class="calendar-event-form" id="calendarEventForm">
+            <header class="calendar-dialog-header">
+                <div>
+                    <span class="ui-kicker" id="calendarDialogKicker">NEW HOUSEHOLD EVENT</span>
+                    <h2 id="calendarDialogTitle">Add to your calendar</h2>
+                </div>
+                <button class="calendar-dialog-close" id="calendarDialogClose" type="button" aria-label="Close">×</button>
+            </header>
+
+            <div class="calendar-storage-status" id="calendarStorageStatus" hidden>
+                <span aria-hidden="true">!</span>
+                <div>
+                    <strong>Calendar storage is not connected yet.</strong>
+                    <small>You can fill out this event, but HOME OS needs the Calendar table enabled before it can save.</small>
+                </div>
+            </div>
+
+            <div class="calendar-dialog-body">
+                <label class="calendar-field calendar-field-wide">
+                    <span>Event</span>
+                    <input id="calendarEventTitle" type="text" maxlength="120" placeholder="Soccer practice, dentist, family dinner..." required>
+                </label>
+
+                <label class="calendar-field">
+                    <span>Event type</span>
+                    <select id="calendarEventCategory">
+                        <option value="family">Family</option>
+                        <option value="birthday">Birthday</option>
+                        <option value="grocery">Groceries + Errands</option>
+                        <option value="appointment">Appointment</option>
+                        <option value="kids">Kids</option>
+                        <option value="school">School</option>
+                        <option value="sports">Sports</option>
+                        <option value="faith">Faith + Church</option>
+                        <option value="home">Home + Hosting</option>
+                        <option value="social">Social</option>
+                        <option value="travel">Travel</option>
+                        <option value="other">Other</option>
+                    </select>
+                </label>
+
+                <label class="calendar-field">
+                    <span>Assigned to</span>
+                    <select id="calendarEventPerson">
+                        <option value="">Whole household</option>
+                    </select>
+                </label>
+
+                <label class="calendar-field calendar-event-color-field">
+                    <span>Event color</span>
+                    <div class="calendar-color-picker">
+                        <input id="calendarEventColor" type="color" value="#d991b0" aria-label="Choose event color">
+                        <div>
+                            <strong id="calendarEventColorName">Custom event color</strong>
+                            <small id="calendarEventColorHint">Choose any color, or assign a person to start from their saved color.</small>
+                        </div>
+                    </div>
+                </label>
+
+                <label class="calendar-field">
+                    <span>Date</span>
+                    <input id="calendarEventDate" type="date" required>
+                </label>
+
+                <label class="calendar-check-field">
+                    <input id="calendarEventAllDay" type="checkbox">
+                    <span>
+                        <strong>All day</strong>
+                        <small>No start time needed.</small>
+                    </span>
+                </label>
+
+                <label class="calendar-field" id="calendarStartTimeField">
+                    <span>Starts</span>
+                    <input id="calendarEventStartTime" type="time" value="09:00">
+                </label>
+
+                <label class="calendar-field" id="calendarEndTimeField">
+                    <span>Ends</span>
+                    <input id="calendarEventEndTime" type="time" value="10:00">
+                </label>
+
+                <label class="calendar-field">
+                    <span>Repeat</span>
+                    <select id="calendarEventRepeat">
+                        <option value="">Does not repeat</option>
+                        <option value="FREQ=DAILY">Every day</option>
+                        <option value="FREQ=WEEKLY">Every week</option>
+                        <option value="FREQ=MONTHLY">Every month</option>
+                        <option value="FREQ=YEARLY">Every year</option>
+                    </select>
+                </label>
+
+                <label class="calendar-field">
+                    <span>Repeat until</span>
+                    <input id="calendarEventRepeatEnd" type="date">
+                </label>
+
+                <label class="calendar-field calendar-field-wide">
+                    <span>Where</span>
+                    <input id="calendarEventLocation" type="text" maxlength="120" placeholder="Home, school, soccer field, doctor...">
+                </label>
+
+                <label class="calendar-field calendar-field-wide">
+                    <span>Notes</span>
+                    <textarea id="calendarEventNotes" rows="4" maxlength="800" placeholder="Anything the household should know..."></textarea>
+                </label>
+            </div>
+
+            <div class="calendar-dialog-color-preview" id="calendarDialogColorPreview">
+                <span></span>
+                <strong>FAMILY</strong>
+                <small>Birthdays stay gold. Other events can use the assigned person’s color or any custom event color.</small>
+            </div>
+
+            <footer class="calendar-dialog-footer">
+                <button class="button button-secondary calendar-delete-event" id="calendarDeleteEvent" type="button" hidden>Delete</button>
+                <div class="calendar-dialog-footer-actions">
+                    <button class="button button-secondary" id="calendarCancelEvent" type="button">Cancel</button>
+                    <button class="button button-primary" type="submit">Save Event →</button>
+                </div>
+            </footer>
+        </form>
+    </dialog>
+
+    <dialog class="calendar-dialog calendar-detail-dialog" id="calendarDetailDialog">
+        <div class="calendar-event-detail">
+            <header class="calendar-dialog-header">
+                <div>
+                    <span class="ui-kicker" id="calendarDetailKicker">FAMILY</span>
+                    <h2 id="calendarDetailTitle">Event</h2>
+                </div>
+                <button class="calendar-dialog-close" id="calendarDetailClose" type="button" aria-label="Close">×</button>
+            </header>
+
+            <div class="calendar-detail-body">
+                <div class="calendar-detail-color" id="calendarDetailColor"></div>
+                <div class="calendar-detail-grid">
+                    <div>
+                        <span>WHEN</span>
+                        <strong id="calendarDetailWhen">—</strong>
+                    </div>
+                    <div>
+                        <span>FOR</span>
+                        <strong id="calendarDetailPerson">Whole household</strong>
+                    </div>
+                    <div>
+                        <span>WHERE</span>
+                        <strong id="calendarDetailLocation">—</strong>
+                    </div>
+                    <div>
+                        <span>SOURCE</span>
+                        <strong id="calendarDetailSource">Calendar</strong>
+                    </div>
+                </div>
+                <p id="calendarDetailNotes"></p>
+            </div>
+
+            <footer class="calendar-dialog-footer">
+                <button class="button button-secondary" id="calendarDetailSourceLink" type="button" hidden>Open Source →</button>
+                <div class="calendar-dialog-footer-actions">
+                    <button class="button button-secondary" id="calendarDetailEdit" type="button" hidden>Edit</button>
+                    <button class="button button-primary" id="calendarDetailDone" type="button">Done</button>
+                </div>
+            </footer>
+        </div>
+    </dialog>
+
+    <footer id="appFooter"></footer>
+    <div class="app-toast" id="appToast" aria-live="polite"></div>
+
+    <!-- 03 // SCRIPT DEPENDENCIES -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/supabase-client.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    <script src="assets/js/core/session.js"></script>
+    <script src="assets/js/core/permissions.js"></script>
+
+    <script src="assets/js/services/task-service.js"></script>
+    <script src="assets/js/services/daily-service.js"></script>
+    <script src="assets/js/services/cleaning-service.js"></script>
+    <script src="assets/js/services/calendar-service.js"></script>
+
+    <script src="assets/js/components/shell.js"></script>
+    <script src="assets/js/components/spring-bloom-background.js"></script>
+    <script src="assets/js/pages/calendar.js"></script>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<!--
+============================================================================
+    HomeOS // Kids Mode
+
+    Child-facing mission space with PIN access.
+    Kids Mode uses its own visual shell instead of the adult HomeOS shell.
+
+    Child access is handled through kids-service.js.
+============================================================================
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HomeOS Kids Mode — a space-themed mission center for assigned household routines and jobs.">
+    <title>Kids Mode | HomeOS</title>
+
+    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="assets/css/kids.css">
+    <link rel="stylesheet" href="assets/css/components/rhythm-companion.css">
+</head>
+
+<!-- 01 // KIDS MODE APPLICATION -->
+<body class="dark" data-page="kids" data-kids-theme="girl">
+
+    <div class="kids-universe" aria-hidden="true">
+        <div class="kids-stars kids-stars-a"></div>
+        <div class="kids-stars kids-stars-b"></div>
+        <div class="kids-stars kids-stars-c"></div>
+        <div class="kids-nebula"></div>
+        <div class="kids-orbit-line kids-orbit-line-a"></div>
+        <div class="kids-orbit-line kids-orbit-line-b"></div>
+        <div class="kids-planet-horizon"></div>
+        <div class="kids-particle-layer" id="kidsParticleLayer"></div>
+    </div>
+
+    <main class="kids-app">
+
+        <header class="kids-topbar">
+            <a class="kids-brand" href="kids.html" aria-label="HomeOS Kids Mode home">
+                <span class="kids-brand-icon">
+                    <img src="assets/images/branding/homeos-icon.png" alt="">
+                </span>
+                <span>
+                    <strong>HOME OS</strong>
+                    <small>KIDS SPACE // MISSION CONTROL</small>
+                </span>
+            </a>
+
+            <div class="kids-theme-switch" id="kidsThemeSwitch" hidden aria-hidden="true">
+                <button type="button" data-kids-theme="girl">Girl Colors</button>
+                <button type="button" data-kids-theme="boy">Boy Colors</button>
+            </div>
+
+            <button class="kids-grownup-link" id="grownupLoginButton" type="button">
+                <span aria-hidden="true">↗</span>
+                Grown-up access
+            </button>
+        </header>
+
+
+        <section class="kids-missing" id="kidsMissingPortal" hidden>
+            <div class="kids-missing-mark">
+                <span class="kids-holo-ring ring-one"></span>
+                <span class="kids-holo-ring ring-two"></span>
+                <img src="assets/images/branding/homeos-icon.png" alt="">
+            </div>
+            <span class="kids-kicker">HOME OS // KIDS SPACE</span>
+            <h1>Mission link needed.</h1>
+            <p>Ask a grown-up to open your household's private Kids Mode link.</p>
+            <a href="login.html">Grown-up sign in →</a>
+        </section>
+
+
+        <section class="kids-profile-stage" id="kidsProfileStage" hidden>
+            <div class="kids-welcome-copy">
+                <span class="kids-system-chip"><i></i> KIDS MODE ONLINE</span>
+                <span class="kids-kicker">CREW SELECT // HOME MISSION</span>
+                <h1>Choose your explorer.</h1>
+                <p id="kidsHouseholdName">Your HomeOS missions are waiting.</p>
+            </div>
+
+            <div class="kids-profile-grid" id="kidsProfileGrid"></div>
+
+            <div class="kids-landing-note">
+                <span aria-hidden="true">✦</span>
+                Pick your name, enter your 4-digit launch code, then open today's missions.
+            </div>
+        </section>
+
+
+        <div class="kids-pin-backdrop" id="kidsPinBackdrop" hidden>
+            <section class="kids-pin-card" role="dialog" aria-modal="true" aria-labelledby="kidsPinTitle">
+                <button class="kids-pin-close" id="closeKidsPin" type="button" aria-label="Choose another person">×</button>
+
+                <div class="kids-pin-avatar-wrap" aria-hidden="true">
+                    <span class="kids-holo-ring ring-one"></span>
+                    <span class="kids-holo-ring ring-two"></span>
+                    <span class="kids-holo-ring ring-three"></span>
+                    <div class="kids-pin-avatar" id="kidsPinAvatar">K</div>
+                </div>
+
+                <span class="kids-system-chip compact"><i></i> IDENTITY CHECK</span>
+                <span class="kids-kicker">4-DIGIT LAUNCH CODE</span>
+                <h2 id="kidsPinTitle">Hi!</h2>
+                <p>Tap your four numbers to enter Mission Control.</p>
+
+                <div class="kids-pin-dots" id="kidsPinDots" aria-label="PIN entered"></div>
+                <div class="kids-pin-error" id="kidsPinError" role="alert"></div>
+
+                <div class="kids-keypad" id="kidsKeypad">
+                    <button type="button" data-pin-key="1">1</button>
+                    <button type="button" data-pin-key="2">2</button>
+                    <button type="button" data-pin-key="3">3</button>
+                    <button type="button" data-pin-key="4">4</button>
+                    <button type="button" data-pin-key="5">5</button>
+                    <button type="button" data-pin-key="6">6</button>
+                    <button type="button" data-pin-key="7">7</button>
+                    <button type="button" data-pin-key="8">8</button>
+                    <button type="button" data-pin-key="9">9</button>
+                    <button type="button" class="keypad-soft" data-pin-clear>Clear</button>
+                    <button type="button" data-pin-key="0">0</button>
+                    <button type="button" class="keypad-soft" data-pin-back aria-label="Delete last number">⌫</button>
+                </div>
+
+                <button class="kids-unlock" id="kidsUnlockButton" type="button" disabled>
+                    Launch My Missions →
+                </button>
+            </section>
+        </div>
+
+
+        <section class="kids-dashboard" id="kidsDashboard" hidden>
+            <div class="kids-command-strip">
+                <div>
+                    <span class="kids-system-chip"><i></i> MISSION CONTROL ONLINE</span>
+                    <strong id="kidsDateLabel">TODAY</strong>
+                </div>
+                <button class="kids-switch-person" id="switchKidButton" type="button">Switch Explorer</button>
+            </div>
+
+            <div class="kids-hero">
+                <div class="kids-hero-copy">
+                    <div class="kids-hero-signal-row">
+                        <span class="kids-kicker">HOME MISSION // ACTIVE</span>
+                        <span class="kids-age-mode" id="kidsAgeMode">EXPLORER MODE</span>
+                    </div>
+                    <h1 class="kids-tech-greeting"><span id="kidsGreeting">HI</span> <em id="kidsName">HELPER</em>!</h1>
+                    <p id="kidsModeDescription">
+                        These are the missions your grown-up assigned to you today.
+                    </p>
+
+                    <div class="kids-progress-pill">
+                        <div class="kids-progress-meta">
+                            <span>MISSION PROGRESS</span>
+                            <strong id="kidsProgressText">0 of 0 done</strong>
+                        </div>
+                        <div><i id="kidsProgressBar"></i></div>
+                    </div>
+                </div>
+
+                <div class="kids-hero-buddy kids-hero-alien" aria-label="Friendly HomeOS space alien">
+                    <div class="kids-buddy-orbit"></div>
+                    <div class="kids-buddy-orbit second"></div>
+
+                    <div class="kids-alien-character" aria-hidden="true">
+                        <div class="kids-alien-ear kids-alien-ear-1"></div>
+                        <div class="kids-alien-ear kids-alien-ear-2"></div>
+
+                        <div class="kids-alien-neck"></div>
+                        <div class="kids-alien-body-side kids-alien-body-side-1"></div>
+                        <div class="kids-alien-body-side kids-alien-body-side-2"></div>
+                        <div class="kids-alien-body"></div>
+                        <div class="kids-alien-belt"><i></i></div>
+
+                        <div class="kids-alien-hand kids-alien-hand-1"></div>
+                        <div class="kids-alien-hand kids-alien-hand-2"></div>
+
+                        <div class="kids-alien-foot kids-alien-foot-1"></div>
+                        <div class="kids-alien-foot kids-alien-foot-2"></div>
+
+                        <div class="kids-alien-antenna" aria-hidden="true"><span></span></div>
+
+                        <div class="kids-alien-head">
+                            <div class="kids-alien-eye kids-alien-eye-1"></div>
+                            <div class="kids-alien-eye kids-alien-eye-2"></div>
+                            <div class="kids-alien-eye kids-alien-eye-3"></div>
+                        </div>
+                    </div>
+
+                    <span id="kidsBuddyMessage">Ready for launch!</span>
+                </div>
+            </div>
+
+
+            <div class="kids-mission-workspace">
+            <section class="kids-plant-buddy-section rhythm-companion-card" id="rhythmCompanionCard" data-health="healthy" data-bloom="false" data-full-day="false" data-rhythm-phase="day" data-shift="opening" data-sleeping="false">
+                <div class="kids-plant-buddy-copy">
+                    <div class="kids-buddy-heading-row">
+                        <div>
+                            <span class="kids-kicker">MISSION BUDDY // ORBIT GARDEN</span>
+                            <h2>Grow your Plant Buddy.</h2>
+                        </div>
+                        <span class="rhythm-companion-state-pill" id="rhythmCompanionStatePill">READY</span>
+                    </div>
+
+                    <strong class="kids-buddy-state-title" id="rhythmCompanionName">Your buddy is ready.</strong>
+                    <p class="kids-buddy-state-message" id="rhythmCompanionMessage">Every mission you finish helps him grow.</p>
+
+                    <div class="rhythm-companion-goal kids-buddy-next-win">
+                        <span>NEXT MISSION</span>
+                        <strong id="rhythmCompanionGoal">Choose one mission to get started.</strong>
+                    </div>
+
+                    <div class="rhythm-care-row kids-buddy-care-row">
+                        <div>
+                            <span>BUDDY POWER</span>
+                            <strong id="rhythmCompanionCare">0%</strong>
+                        </div>
+                        <div class="rhythm-care-track"><span id="rhythmCompanionCareBar"></span></div>
+                    </div>
+
+                    <div class="rhythm-care-badges kids-buddy-badges">
+                        <span><b aria-hidden="true">✦</b> Missions <strong id="rhythmCompanionSun">0</strong><small id="rhythmCompanionSunTotal">/ 0</small></span>
+                        <span><b aria-hidden="true">★</b> Complete <strong id="kidsBuddyCompletedCount">0</strong></span>
+                    </div>
+
+                    <small class="kids-buddy-shared-note">Same Plant Buddy on Girl Space and Boy Space. His progress follows this explorer's missions.</small>
+                    <span id="rhythmCompanionWater" hidden>0</span>
+                    <span id="rhythmCompanionWaterTotal" hidden>/ 0</span>
+                    <span id="rhythmScheduleSummary" hidden></span>
+                </div>
+
+                <div class="rhythm-companion-stage kids-plant-buddy-stage" id="rhythmCompanionStage">
+                    <div class="rhythm-companion-mount" id="rhythmCompanionMount"></div>
+                </div>
+            </section>
+
+            <section class="kids-jobs-section">
+                <div class="kids-section-heading">
+                    <div>
+                        <span class="kids-kicker" id="kidsFocusKicker">TODAY'S MISSION BOARD</span>
+                        <h2 id="kidsFocusTitle">My routines</h2>
+                    </div>
+                    <span class="kids-section-signal"><i></i> LIVE</span>
+                </div>
+
+                <div class="kids-job-list" id="kidsJobList"></div>
+
+                <div class="kids-all-done" id="kidsAllDone" hidden>
+                    <div class="kids-all-done-stars" aria-hidden="true">✦ ✧ ✦</div>
+                    <strong>Mission complete!</strong>
+                    <p>You helped your home today. Great work, explorer.</p>
+                </div>
+            </section>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="kids-toast" id="kidsToast" role="status" aria-live="polite"></div>
+
+    <!-- 02 // KIDS MODE SCRIPT DEPENDENCIES -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/supabase-client.js"></script>
+    <script src="assets/js/services/kids-service.js"></script>
+    <script src="https://cdn.jsdelivr.net/processing.js/1.4.8/processing.min.js"></script>
+    <script src="assets/js/components/rhythm-groot-sketch.js"></script>
+    <script src="assets/js/components/rhythm-companion.js"></script>
+    <script src="assets/js/pages/kids.js"></script>
+</body>
+</html>

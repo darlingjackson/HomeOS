@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<!--
+    HomeOS // Account + Home Settings
+
+    One place for profile, household, people, tasks and Home Setup.
+    This replaces the old standalone People and Home Setup pages.
+
+    Home Setup deep links use #home-<section>.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manage your HomeOS account, household, people, tasks and home setup.">
+    <title>Account & Home Settings | HOME OS</title>
+
+    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/account.css">
+</head>
+
+<body data-page="account">
+    <header id="appHeader"></header>
+
+    <main class="app-main account-main">
+        <section class="account-console" aria-labelledby="accountPageTitle">
+
+            <aside class="account-sidebar">
+                <div class="account-sidebar-user">
+                    <span class="account-page-avatar" id="pageAccountAvatar" aria-hidden="true">H</span>
+                    <div>
+                        <strong id="pageAccountName">HOME OS User</strong>
+                        <span id="pageAccountEmail">Loading…</span>
+                    </div>
+                    <span class="account-role-badge" id="pageAccountRole">MEMBER</span>
+                </div>
+
+                <label class="account-mobile-menu">
+                    <span>Settings</span>
+                    <select id="accountMobileSection">
+                        <option value="profile">Profile</option>
+                        <option value="household">Home identity</option>
+                        <option value="people">People & Access</option>
+                        <option value="tasks">Task Assignments</option>
+                        <option value="home">Home Setup</option>
+                        <option value="session">Session</option>
+                    </select>
+                </label>
+
+                <nav class="account-settings-nav" aria-label="Account settings">
+                    <div class="account-nav-group">
+                        <span class="account-nav-label">ACCOUNT</span>
+                        <button class="account-nav-item is-active" type="button" data-account-tab="profile">
+                            <span>Profile</span><small>Name, email & role</small>
+                        </button>
+                    </div>
+
+                    <div class="account-nav-group" id="householdSettingsNav">
+                        <span class="account-nav-label">HOUSEHOLD</span>
+                        <button class="account-nav-item" type="button" data-account-tab="household">
+                            <span>Home identity</span><small>Name, type & tagline</small>
+                        </button>
+                        <button class="account-nav-item" type="button" data-account-tab="people">
+                            <span>People & Access</span><small><b id="navPeopleCount">—</b> people</small>
+                        </button>
+                        <button class="account-nav-item" type="button" data-account-tab="tasks">
+                            <span>Task Assignments</span><small>Create & route household work</small>
+                        </button>
+                        <button class="account-nav-item" type="button" data-account-tab="home">
+                            <span>Home Setup</span><small>Rooms, zones & systems</small>
+                        </button>
+                    </div>
+
+                    <div class="account-nav-group">
+                        <span class="account-nav-label">SYSTEM</span>
+                        <button class="account-nav-item" type="button" data-account-tab="session">
+                            <span>Session</span><small>Sign out of this browser</small>
+                        </button>
+                    </div>
+                </nav>
+            </aside>
+
+            <section class="account-workspace">
+                <header class="account-workspace-header">
+                    <div>
+                        <span class="account-eyebrow">HOME OS // SETTINGS</span>
+                        <h1 id="accountPageTitle">Account & Home Settings</h1>
+                        <p id="accountPageDescription">Manage your personal HOME OS profile.</p>
+                    </div>
+                    <div class="account-household-chip">
+                        <span>HOUSEHOLD</span>
+                        <strong id="householdSnapshotName">Loading…</strong>
+                        <small id="householdSnapshotTagline">HOME OS is checking your home.</small>
+                    </div>
+                </header>
+
+                <!-- Profile -->
+                <section class="account-settings-panel is-active" data-account-panel="profile">
+                    <div class="settings-panel-heading">
+                        <div>
+                            <span class="account-section-label">PERSONAL ACCOUNT</span>
+                            <h2>Profile</h2>
+                            <p>Your personal identity inside HOME OS. This is separate from shared household settings.</p>
+                        </div>
+                    </div>
+
+                    <form class="settings-form" id="personalAccountForm">
+                        <div class="settings-row">
+                            <div class="settings-row-copy">
+                                <label for="accountDisplayNameInput">Display name</label>
+                                <p>Used in navigation, assignments and household activity.</p>
+                            </div>
+                            <div class="settings-row-control">
+                                <input id="accountDisplayNameInput" type="text" maxlength="80" autocomplete="name" required>
+                            </div>
+                        </div>
+
+                        <div class="settings-row">
+                            <div class="settings-row-copy">
+                                <label for="accountEmailInput">Email</label>
+                                <p>Your sign-in email. Email changes remain an account-security action.</p>
+                            </div>
+                            <div class="settings-row-control">
+                                <input id="accountEmailInput" type="email" readonly>
+                            </div>
+                        </div>
+
+                        <div class="settings-row">
+                            <div class="settings-row-copy">
+                                <span class="settings-row-title">Household role</span>
+                                <p>Your role controls which shared-home settings you can change.</p>
+                            </div>
+                            <div class="settings-row-control settings-readout"><strong id="profileRoleReadout">MEMBER</strong></div>
+                        </div>
+
+                        <footer class="settings-actions">
+                            <span id="profileSaveState">Changes are saved to your HOME OS profile.</span>
+                            <button class="button button-primary" type="submit">Save Profile</button>
+                        </footer>
+                    </form>
+                </section>
+
+                <!-- Household identity -->
+                <section class="account-settings-panel" data-account-panel="household" hidden>
+                    <div class="settings-panel-heading">
+                        <div>
+                            <span class="account-section-label">SHARED HOUSEHOLD</span>
+                            <h2>Home identity</h2>
+                            <p>Change the shared name and identity used throughout HOME OS.</p>
+                        </div>
+                        <span class="settings-access-badge" id="householdRolePill">MEMBER</span>
+                    </div>
+
+                    <form class="settings-form" id="householdIdentityForm">
+                        <div class="settings-row">
+                            <div class="settings-row-copy">
+                                <label for="householdNameInput">Household name</label>
+                                <p>The name shown in navigation and shared settings.</p>
+                            </div>
+                            <div class="settings-row-control"><input id="householdNameInput" type="text" maxlength="80" required></div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-row-copy">
+                                <label for="householdTypeInput">Home type</label>
+                                <p>Helps HOME OS understand the structure of the household.</p>
+                            </div>
+                            <div class="settings-row-control">
+                                <select id="householdTypeInput">
+                                    <option value="">Choose a home type</option>
+                                    <option value="house">House</option>
+                                    <option value="townhome">Townhome</option>
+                                    <option value="apartment">Apartment</option>
+                                    <option value="condo">Condo</option>
+                                    <option value="multi_family">Multi-family home</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-row-copy">
+                                <label for="householdTaglineInput">Home tagline</label>
+                                <p>Optional short line used as part of the household identity.</p>
+                            </div>
+                            <div class="settings-row-control">
+                                <input
+                                    id="householdTaglineInput"
+                                    type="text"
+                                    maxlength="120"
+                                    placeholder="A brighter home!"
+                                >
+                            </div>
+                        </div>
+                        <div class="identity-appearance-row">
+                            <div>
+                                <span class="settings-row-title">Appearance</span>
+                                <p>Change the HOME OS theme on this browser.</p>
+                            </div>
+
+                            <div class="identity-theme-control">
+                                <span id="accountThemeState">Dark mode</span>
+                                <button
+                                    class="button button-secondary compact-button"
+                                    id="accountThemeToggle"
+                                    type="button"
+                                >
+                                    Use Light Mode
+                                </button>
+                            </div>
+                        </div>
+
+                        <footer class="settings-actions">
+                            <span id="householdPermissionCopy">HOME OS is checking your household permissions.</span>
+                            <button class="button button-primary" id="saveHouseholdButton" type="submit">Save Household</button>
+                        </footer>
+                    </form>
+                </section>
+
+                <!-- People + Access -->
+                <section class="account-settings-panel" data-account-panel="people" hidden>
+                    <div class="settings-panel-heading settings-panel-heading-action">
+                        <div>
+                            <span class="account-section-label">PEOPLE + ACCESS</span>
+                            <h2>Your household</h2>
+                            <p>
+                                Adults use HOME OS accounts and email invitations.
+                                Children use one household Kids Portal, their own 4-digit PIN, optional shortcut link and page theme.
+                            </p>
+                        </div>
+
+                        <div class="people-add-actions">
+                            <button class="button button-secondary compact-button" id="addAdultButton" type="button">
+                                + Add Adult
+                            </button>
+
+                            <button class="button button-primary compact-button" id="addChildButton" type="button">
+                                + Add Child
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="management-split people-management-split">
+                        <div class="management-list-panel">
+                            <div class="people-group">
+                                <div class="people-group-heading">
+                                    <div>
+                                        <span>ADULTS</span>
+                                        <strong>Adult household members</strong>
+                                    </div>
+                                    <small>Email access is managed here.</small>
+                                </div>
+
+                                <div class="compact-record-list" id="adultPeopleList">
+                                    <div class="record-empty">Loading adults…</div>
+                                </div>
+                            </div>
+
+                            <div class="people-group">
+                                <div class="people-group-heading">
+                                    <div>
+                                        <span>CHILDREN</span>
+                                        <strong>Kids Mode profiles</strong>
+                                    </div>
+                                    <small>PIN, theme, portal access and child shortcuts are managed here.</small>
+                                </div>
+
+                                <div class="compact-record-list" id="childPeopleList">
+                                    <div class="record-empty">Loading children…</div>
+                                </div>
+                            </div>
+
+                            <div class="inline-subsection" id="pendingInvitesSection" hidden>
+                                <div class="inline-subsection-heading">
+                                    <strong>Pending adult invitations</strong>
+                                    <span>Waiting for the adult to accept HOME OS access</span>
+                                </div>
+                                <div class="compact-record-list" id="pendingInvitesList"></div>
+                            </div>
+                        </div>
+
+                        <aside class="management-editor person-admin-editor" id="personEditor">
+                            <div class="editor-placeholder" id="personEditorPlaceholder">
+                                <span>PEOPLE</span>
+                                <strong>Choose an adult or child</strong>
+                                <p>
+                                    Their setup will change automatically depending on who you are managing.
+                                </p>
+                            </div>
+
+                            <div id="personEditorContent" hidden>
+                                <div class="editor-heading">
+                                    <div>
+                                        <span id="personEditorKicker">HOUSEHOLD PERSON</span>
+                                        <h3 id="personEditorTitle">Person</h3>
+                                    </div>
+                                    <button class="icon-text-button" id="closePersonEditor" type="button">Close</button>
+                                </div>
+
+                                <form class="compact-editor-form person-identity-form" id="personForm">
+                                    <input id="personIdInput" type="hidden">
+                                    <input id="personTypeInput" type="hidden" value="adult">
+
+                                    <label class="field-wide">
+                                        <span>Name</span>
+                                        <input id="personNameInput" type="text" maxlength="80" required>
+                                    </label>
+
+                                    <label class="field-wide">
+                                        <span>Relationship</span>
+                                        <input
+                                            id="personRelationshipInput"
+                                            type="text"
+                                            maxlength="80"
+                                            placeholder="Spouse, daughter, son, grandmother…"
+                                        >
+                                    </label>
+
+                                    <div class="field-wide child-age-field" id="personBirthDateField" hidden>
+                                        <span class="birthday-field-title">Birthday</span>
+
+                                        <div class="kid-birthday-picker" role="group" aria-label="Child birthday">
+                                            <label class="kid-birthday-part">
+                                                <span>Month</span>
+                                                <select id="personBirthMonthInput" autocomplete="bday-month">
+                                                    <option value="">Month</option>
+                                                    <option value="1">January</option>
+                                                    <option value="2">February</option>
+                                                    <option value="3">March</option>
+                                                    <option value="4">April</option>
+                                                    <option value="5">May</option>
+                                                    <option value="6">June</option>
+                                                    <option value="7">July</option>
+                                                    <option value="8">August</option>
+                                                    <option value="9">September</option>
+                                                    <option value="10">October</option>
+                                                    <option value="11">November</option>
+                                                    <option value="12">December</option>
+                                                </select>
+                                            </label>
+
+                                            <label class="kid-birthday-part kid-birthday-day">
+                                                <span>Day</span>
+                                                <select id="personBirthDayInput" autocomplete="bday-day">
+                                                    <option value="">Day</option>
+                                                </select>
+                                            </label>
+
+                                            <label class="kid-birthday-part kid-birthday-year">
+                                                <span>Year</span>
+                                                <select id="personBirthYearInput" autocomplete="bday-year">
+                                                    <option value="">Year</option>
+                                                </select>
+                                            </label>
+                                        </div>
+
+                                        <input id="personBirthDateInput" type="hidden" autocomplete="bday">
+
+                                        <small id="kidAgeBandReadout">
+                                            Choose the month, day and year. HOME OS calculates age automatically
+                                            and moves Kids Mode between Ages 1–4, 5–10 and 11–18 as they grow.
+                                        </small>
+                                    </div>
+
+                                    <label class="toggle-row field-wide">
+                                        <input id="personAssignableInput" type="checkbox" checked>
+                                        <span>
+                                            <strong>Can receive household tasks</strong>
+                                            <small>Include this person when HOME OS assigns work.</small>
+                                        </span>
+                                    </label>
+
+                                    <button class="button button-primary field-wide" id="personProfileSaveButton" type="submit">
+                                        Save Adult
+                                    </button>
+                                </form>
+
+                                <section class="person-access-mode" id="adultAccessEditor" hidden>
+                                    <div class="editor-divider"></div>
+
+                                    <div class="access-editor">
+                                        <div class="inline-subsection-heading">
+                                            <strong>Adult HOME OS account</strong>
+                                            <span id="personLoginStatus">NO LOGIN</span>
+                                        </div>
+
+                                        <p id="personLoginCopy">
+                                            Adults can have their own HOME OS login.
+                                        </p>
+
+                                        <div id="connectedAccessControls" hidden>
+                                            <div class="owner-role-lock" id="ownerRoleLock" hidden>
+                                                <div>
+                                                    <span>Household role</span>
+                                                    <strong>Owner</strong>
+                                                </div>
+                                                <p>
+                                                    The household creator keeps the Owner role. There is nothing to change here.
+                                                </p>
+                                            </div>
+
+                                            <div class="editable-role-controls" id="editableRoleControls" hidden>
+                                                <label>
+                                                    <span>Household role</span>
+                                                    <select id="personRoleInput">
+                                                        <option value="member">Member</option>
+                                                        <option value="admin">Admin</option>
+                                                    </select>
+                                                </label>
+
+                                                <button class="button button-secondary compact-button" id="saveRoleButton" type="button">
+                                                    Save Role
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div id="inviteAccessControls" hidden>
+                                            <label>
+                                                <span>Email invitation</span>
+                                                <input
+                                                    id="inviteEmailInput"
+                                                    type="email"
+                                                    autocomplete="email"
+                                                    placeholder="name@example.com"
+                                                >
+                                            </label>
+
+                                            <label>
+                                                <span>Access role</span>
+                                                <select id="inviteRoleInput">
+                                                    <option value="member">Member</option>
+                                                    <option value="admin">Admin</option>
+                                                </select>
+                                            </label>
+
+                                            <button class="button button-secondary compact-button" id="createInviteButton" type="button">
+                                                Send / Create Invitation
+                                            </button>
+
+                                            <button class="button button-quiet compact-button" id="linkMyAccountButton" type="button" hidden>
+                                                Link My Account
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section class="person-access-mode kid-access-editor" id="childAccessEditor" hidden>
+                                    <div class="editor-divider"></div>
+
+                                    <div class="kid-access-heading">
+                                        <div>
+                                            <span>KIDS MODE</span>
+                                            <strong>Child access</strong>
+                                            <p>
+                                                No email account is needed. Kids choose a profile in the household portal, then enter their own 4-digit PIN.
+                                            </p>
+                                        </div>
+
+                                        <span class="kid-access-status" id="kidAccessStatus">SETUP NEEDED</span>
+                                    </div>
+
+                                    <div class="kid-access-grid">
+                                        <label class="kid-pin-field">
+                                            <span>4-digit PIN</span>
+                                            <div class="kid-pin-control">
+                                                <input
+                                                    id="kidPinInput"
+                                                    type="password"
+                                                    inputmode="numeric"
+                                                    autocomplete="off"
+                                                    maxlength="4"
+                                                    pattern="[0-9]{4}"
+                                                    placeholder="0000"
+                                                >
+                                                <button
+                                                    class="kid-pin-visibility"
+                                                    id="toggleKidPinButton"
+                                                    type="button"
+                                                    aria-label="Show PIN"
+                                                    aria-pressed="false"
+                                                    title="Show PIN"
+                                                >
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6S2.5 12 2.5 12Z"></path>
+                                                        <circle cx="12" cy="12" r="2.8"></circle>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <small>
+                                                The saved PIN stays hidden in this box. Click the eye to view it.
+                                                HOME OS remembers PINs created or saved on this browser.
+                                            </small>
+                                        </label>
+
+                                        <button
+                                            class="button button-secondary compact-button kid-pin-generate"
+                                            id="generateKidPinButton"
+                                            type="button"
+                                        >
+                                            Generate New PIN
+                                        </button>
+                                    </div>
+
+                                    <fieldset class="kid-theme-picker">
+                                        <legend>Kids Mode theme</legend>
+
+                                        <label class="kid-theme-option kid-theme-girl">
+                                            <input type="radio" name="kidTheme" value="girl">
+                                            <span class="kid-theme-preview">
+                                                <i></i><i></i><i></i>
+                                            </span>
+                                            <strong>Girl Theme</strong>
+                                            <small>Blush, pearl and aqua</small>
+                                        </label>
+
+                                        <label class="kid-theme-option kid-theme-boy">
+                                            <input type="radio" name="kidTheme" value="boy">
+                                            <span class="kid-theme-preview">
+                                                <i></i><i></i><i></i>
+                                            </span>
+                                            <strong>Boy Theme</strong>
+                                            <small>Aqua, blue and soft slate</small>
+                                        </label>
+                                    </fieldset>
+
+                                    <label class="kid-link-field">
+                                        <span>Household Kids Portal</span>
+                                        <div>
+                                            <input
+                                                id="householdKidPortalUrl"
+                                                type="text"
+                                                readonly
+                                                placeholder="Save Kids Mode to create the household portal"
+                                            >
+                                            <button class="button button-secondary compact-button" id="copyHouseholdKidPortalButton" type="button">
+                                                Copy Portal
+                                            </button>
+                                        </div>
+                                        <small>
+                                            Best for shared family devices. Kids choose their own profile, then enter their 4-digit PIN.
+                                        </small>
+                                    </label>
+
+                                    <label class="kid-link-field">
+                                        <span>Kid Shortcut Link</span>
+                                        <div>
+                                            <input
+                                                id="kidAccessUrl"
+                                                type="text"
+                                                readonly
+                                                placeholder="Save this child to create a shortcut"
+                                            >
+                                            <button class="button button-secondary compact-button" id="copyKidLinkButton" type="button">
+                                                Copy Shortcut
+                                            </button>
+                                        </div>
+                                        <small>
+                                            Opens directly to this child's launch-code screen. The child's 4-digit PIN is still required.
+                                        </small>
+                                    </label>
+
+                                    <div class="kid-age-mission-panel kid-age-mission-panel-auto">
+                                        <div>
+                                            <span>AUTO MISSIONS</span>
+                                            <strong id="kidMissionSeedStatus">Birthday needed</strong>
+                                            <p id="kidMissionSeedCopy">
+                                                Enter a birthday and HOME OS automatically creates the recommended
+                                                missions for the child's current age. Their mission band updates as they grow.
+                                            </p>
+                                        </div>
+                                        <div class="kid-mission-panel-actions">
+                                            <span class="kid-auto-badge" aria-label="Automatic">AUTO</span>
+                                            <button class="button button-secondary kid-review-missions-button" id="reviewKidMissionsButton" type="button" disabled>
+                                                Review Missions
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="kid-save-panel">
+                                        <div class="kid-save-copy">
+                                            <span>ONE SAVE</span>
+                                            <strong>Save this child</strong>
+                                            <p>
+                                                Name, birthday, automatic missions, task eligibility, PIN, theme
+                                                and Kids Mode access are saved together.
+                                            </p>
+                                        </div>
+                                        <button
+                                            class="button button-primary kid-save-button"
+                                            id="saveChildButton"
+                                            type="submit"
+                                            form="personForm"
+                                        >
+                                            Save Child
+                                        </button>
+                                    </div>
+                                </section>
+                            </div>
+                        </aside>
+                    </div>
+                </section>
+
+                <!-- Task assignments -->
+                <section class="account-settings-panel" data-account-panel="tasks" hidden>
+                    <div class="settings-panel-heading task-assignments-heading">
+                        <div>
+                            <span class="account-section-label">TASK ASSIGNMENTS</span>
+                            <h2>Choose who needs something assigned.</h2>
+                            <p>
+                                Pick a person first. HOME OS will show what is already on their plate,
+                                then you can add one clear task without digging through the entire household task engine.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="task-person-picker-shell">
+                        <div class="task-person-picker-copy">
+                            <span>HOUSEHOLD</span>
+                            <strong>Who are you assigning?</strong>
+                        </div>
+
+                        <div class="task-person-picker" id="taskPersonPicker" role="list" aria-label="Choose a household person">
+                            <div class="record-empty">Loading household people…</div>
+                        </div>
+                    </div>
+
+                    <div class="task-person-empty" id="taskPersonEmptyState">
+                        <div class="task-person-empty-icon" aria-hidden="true">+</div>
+                        <strong>Choose a person above.</strong>
+                        <p>
+                            You will see their current assigned tasks first, then a simple form to add another one if they need it.
+                        </p>
+                    </div>
+
+                    <div class="task-child-mission-tools" id="taskChildMissionTools" hidden>
+                        <div class="task-child-mission-mark" aria-hidden="true">✦</div>
+                        <div>
+                            <span>AUTOMATIC KIDS MODE</span>
+                            <strong id="taskChildMissionTitle">Age-based missions are automatic</strong>
+                            <p id="taskChildMissionCopy">
+                                Set the child's birthday in People &amp; Access. HOME OS calculates their current age automatically, updates their mission band as they grow, and adds manual assignments on top.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="task-person-workspace" id="taskPersonWorkspace" hidden>
+                        <section class="task-person-load-panel">
+                            <header class="task-person-load-header">
+                                <div class="task-selected-identity">
+                                    <span class="task-selected-avatar tone-0" id="taskSelectedAvatar" aria-hidden="true">H</span>
+                                    <div>
+                                        <span>CURRENT RESPONSIBILITIES</span>
+                                        <h3 id="taskSelectedPersonName">Household Person</h3>
+                                        <p id="taskSelectedPersonMeta">Loading assigned work…</p>
+                                    </div>
+                                </div>
+
+                                <div class="task-load-counts">
+                                    <div>
+                                        <span>TOTAL</span>
+                                        <strong id="taskSelectedTotalCount">0</strong>
+                                    </div>
+                                    <div>
+                                        <span>RHYTHM</span>
+                                        <strong id="taskSelectedDailyCount">0</strong>
+                                    </div>
+                                    <div>
+                                        <span>RECURRING</span>
+                                        <strong id="taskSelectedRecurringCount">0</strong>
+                                    </div>
+                                </div>
+                            </header>
+
+                            <div class="task-person-assigned-list" id="taskPersonAssignedList">
+                                <div class="record-empty">Loading assigned tasks…</div>
+                            </div>
+                        </section>
+
+                        <section class="task-person-assign-panel">
+                            <header class="task-simple-form-heading">
+                                <div>
+                                    <span>NEW ASSIGNMENT</span>
+                                    <h3>Assign <em id="taskAssignPersonName">this person</em> a task.</h3>
+                                    <p>
+                                        Choose the HOME OS category so the task knows where it belongs.
+                                    </p>
+                                </div>
+                            </header>
+
+                            <form class="task-simple-form" id="taskAssignmentForm">
+                                <label class="task-simple-title-field">
+                                    <span>What needs to be done?</span>
+                                    <input
+                                        id="taskTitleInput"
+                                        type="text"
+                                        maxlength="160"
+                                        placeholder="Ex: Unload the dishwasher"
+                                        required
+                                    >
+                                </label>
+
+                                <fieldset class="task-category-picker">
+                                    <legend>Where should it show?</legend>
+
+                                    <button class="task-category-choice is-active" type="button" data-task-category-choice="daily_opening">
+                                        <span class="task-category-icon" aria-hidden="true">☼</span>
+                                        <strong>Morning</strong>
+                                        <small>Opening Shift</small>
+                                    </button>
+
+                                    <button class="task-category-choice" type="button" data-task-category-choice="daily_closing">
+                                        <span class="task-category-icon" aria-hidden="true">☾</span>
+                                        <strong>Evening</strong>
+                                        <small>Closing Shift</small>
+                                    </button>
+
+                                    <button class="task-category-choice" type="button" data-task-category-choice="cleaning">
+                                        <span class="task-category-icon" aria-hidden="true">✦</span>
+                                        <strong>Cleaning</strong>
+                                        <small>Room or zone</small>
+                                    </button>
+
+                                    <button class="task-category-choice" type="button" data-task-category-choice="laundry">
+                                        <span class="task-category-icon" aria-hidden="true">◉</span>
+                                        <strong>Laundry</strong>
+                                        <small>Laundry system</small>
+                                    </button>
+
+                                    <button class="task-category-choice" type="button" data-task-category-choice="home_care">
+                                        <span class="task-category-icon" aria-hidden="true">⌂</span>
+                                        <strong>Home Care</strong>
+                                        <small>Upkeep</small>
+                                    </button>
+
+                                    <button class="task-category-choice" type="button" data-task-category-choice="seasonal">
+                                        <span class="task-category-icon" aria-hidden="true">◇</span>
+                                        <strong>Seasonal</strong>
+                                        <small>Season work</small>
+                                    </button>
+
+                                    <button class="task-category-choice" type="button" data-task-category-choice="custom">
+                                        <span class="task-category-icon" aria-hidden="true">＋</span>
+                                        <strong>Other</strong>
+                                        <small>Household task</small>
+                                    </button>
+                                </fieldset>
+
+                                <input id="taskCategoryInput" type="hidden" value="daily_opening">
+
+                                <div class="task-simple-grid">
+                                    <label>
+                                        <span id="taskContextLabel">Area / room</span>
+                                        <select id="taskTargetInput">
+                                            <option value="">Choose an area</option>
+                                        </select>
+                                    </label>
+
+                                    <div class="task-schedule-field">
+                                        <span class="task-schedule-label">How often?</span>
+                                        <div class="task-repeat-picker" role="group" aria-label="Task schedule">
+                                            <button class="task-repeat-choice" type="button" data-task-repeat-choice="none">One time</button>
+                                            <button class="task-repeat-choice is-active" type="button" data-task-repeat-choice="daily">Daily</button>
+                                            <button class="task-repeat-choice" type="button" data-task-repeat-choice="weekly">Weekly</button>
+                                            <button class="task-repeat-choice" type="button" data-task-repeat-choice="biweekly">Every 2 weeks</button>
+                                        </div>
+                                        <input id="taskRepeatInput" type="hidden" value="daily">
+                                    </div>
+                                </div>
+
+                                <div class="task-schedule-details" id="taskScheduleDetails">
+                                    <label id="taskOneTimeDateField" hidden>
+                                        <span>Do this on</span>
+                                        <input id="taskDueDateInput" type="date">
+                                    </label>
+
+                                    <fieldset class="task-weekday-picker" id="taskWeekdayField" hidden>
+                                        <legend>Repeat on</legend>
+                                        <div class="task-weekday-options">
+                                            <button type="button" data-task-weekday="MO">Mon</button>
+                                            <button type="button" data-task-weekday="TU">Tue</button>
+                                            <button type="button" data-task-weekday="WE">Wed</button>
+                                            <button type="button" data-task-weekday="TH">Thu</button>
+                                            <button type="button" data-task-weekday="FR">Fri</button>
+                                            <button type="button" data-task-weekday="SA">Sat</button>
+                                            <button type="button" data-task-weekday="SU">Sun</button>
+                                        </div>
+                                        <small>Choose one or more days.</small>
+                                    </fieldset>
+                                </div>
+
+                                <div class="task-route-explainer" id="taskRouteExplainer">
+                                    Opening Shift · Every day · Assigned only to the selected person.
+                                </div>
+
+                                <details class="task-more-options">
+                                    <summary>Optional details</summary>
+                                    <div class="task-more-options-body">
+                                        <label>
+                                            <span>Notes</span>
+                                            <textarea
+                                                id="taskDetailsInput"
+                                                rows="3"
+                                                maxlength="500"
+                                                placeholder="Anything they should know before starting."
+                                            ></textarea>
+                                        </label>
+
+                                        <label>
+                                            <span>Priority</span>
+                                            <select id="taskPriorityInput">
+                                                <option value="normal">Normal</option>
+                                                <option value="low">Low</option>
+                                                <option value="high">High</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                </details>
+
+                                <footer class="task-simple-actions">
+                                    <button class="button button-primary" id="saveTaskButton" type="submit">
+                                        Assign to <span id="taskAssignButtonName">Person</span> →
+                                    </button>
+
+                                    <button class="button button-quiet" id="resetTaskFormButton" type="button">
+                                        Clear
+                                    </button>
+                                </footer>
+                            </form>
+                        </section>
+                    </div>
+                </section>
+
+                <!-- Home Setup -->
+                <section class="account-settings-panel home-setup-panel" data-account-panel="home" hidden>
+                    <div class="settings-panel-heading">
+                        <div>
+                            <span class="account-section-label">HOME CONFIGURATION</span>
+                            <h2>Home Setup</h2>
+                            <p>Edit the physical home and the systems HOME OS builds from it. Everything stays inside Account.</p>
+                        </div>
+                    </div>
+
+                    <section class="home-reset-card" id="homeResetCard">
+                        <div class="home-reset-copy">
+                            <span>START OVER</span>
+                            <h3>Want to rebuild the home from scratch?</h3>
+                            <p>
+                                Start a clean guided rebuild of Levels, Areas, Cleaning Zones, Inventory, Laundry and Home Care.
+                                Your Owner/Admin account, household people and permissions stay in place, and your current live layout
+                                stays active until you finish the new setup.
+                            </p>
+                        </div>
+
+                        <button class="button button-secondary home-reset-launch danger" id="openHomeResetButton" type="button">
+                            Reset Home Setup
+                        </button>
+
+                        <div class="home-reset-confirm" id="homeResetConfirm" hidden>
+                            <div>
+                                <span>CONFIRM RESET</span>
+                                <strong>Start HomeOS setup again?</strong>
+                                <p>This does not delete your login or household people. It starts a fresh home-layout rebuild.</p>
+                            </div>
+
+                            <label class="home-reset-check">
+                                <input id="confirmHomeResetCheck" type="checkbox">
+                                <span>I understand and want to start over.</span>
+                            </label>
+
+                            <div class="home-reset-actions">
+                                <button class="button button-quiet" id="cancelHomeResetButton" type="button">Cancel</button>
+                                <button
+                                class="button button-primary danger"
+                                id="confirmHomeResetButton"
+                                type="button"
+                            >
+                                Reset &amp; Start Over →
+                            </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="home-setup-tabs" role="tablist" aria-label="Home setup sections">
+                        <button class="is-active" type="button" data-home-setup-tab="layout">Levels & Areas <b id="homeLayoutCount">—</b></button>
+                        <button type="button" data-home-setup-tab="zones">Cleaning Zones <b id="householdZoneCount">—</b></button>
+                        <button type="button" data-home-setup-tab="inventory">Inventory <b id="adminInventoryCount">—</b></button>
+                        <button type="button" data-home-setup-tab="laundry">Laundry <b id="adminLaundryCount">—</b></button>
+                        <button type="button" data-home-setup-tab="care">Home Care <b id="adminFeatureCount">—</b></button>
+                    </div>
+
+                    <!-- Levels + Areas -->
+                    <section class="home-setup-workspace is-active" data-home-setup-panel="layout">
+                        <div class="home-setup-grid two-col">
+                            <article class="setup-block">
+                                <div class="setup-block-heading">
+                                    <div>
+                                        <span>LEVELS</span>
+                                        <strong>Floors & sections</strong>
+                                    </div>
+                                    <b id="householdLevelCount">—</b>
+                                </div>
+
+                                <form class="inline-add-form" id="levelForm">
+                                    <input id="levelIdInput" type="hidden">
+                                    <input
+                                        id="levelNameInput"
+                                        type="text"
+                                        maxlength="80"
+                                        placeholder="Main Floor"
+                                        required
+                                    >
+                                    <button class="button button-primary compact-button" type="submit">Save</button>
+                                    <button class="button button-quiet compact-button" id="clearLevelButton" type="button">Clear</button>
+                                </form>
+
+                                <div class="compact-record-list" id="levelList"></div>
+                            </article>
+
+                            <article class="setup-block">
+                                <div class="setup-block-heading">
+                                    <div>
+                                        <span>AREAS</span>
+                                        <strong>Rooms & spaces</strong>
+                                    </div>
+                                    <b id="householdAreaCount">—</b>
+                                </div>
+
+                                <form class="stacked-inline-form" id="roomForm">
+                                    <input id="roomIdInput" type="hidden">
+
+                                    <div>
+                                        <input
+                                            id="roomNameInput"
+                                            type="text"
+                                            maxlength="100"
+                                            placeholder="Kitchen"
+                                            required
+                                        >
+
+                                        <select id="roomTypeInput">
+                                            <option value="other">Other</option>
+                                            <option value="bedroom">Bedroom</option>
+                                            <option value="bathroom">Bathroom</option>
+                                            <option value="kitchen">Kitchen</option>
+                                            <option value="living">Living</option>
+                                            <option value="dining">Dining</option>
+                                            <option value="office">Office</option>
+                                            <option value="laundry">Laundry</option>
+                                            <option value="pantry">Pantry</option>
+                                            <option value="closet">Closet</option>
+                                            <option value="hall">Hall</option>
+                                            <option value="entry">Entry</option>
+                                            <option value="garage">Garage</option>
+                                            <option value="outdoor">Outdoor</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <select id="roomLevelInput">
+                                            <option value="">No level</option>
+                                        </select>
+
+                                        <select id="roomZoneInput">
+                                            <option value="">No cleaning zone</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="editor-form-actions">
+                                        <button class="button button-primary compact-button" type="submit">Save Area</button>
+                                        <button class="button button-quiet compact-button" id="clearRoomButton" type="button">Clear</button>
+                                    </div>
+                                </form>
+
+                                <div class="compact-record-list" id="roomList"></div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <!-- Cleaning Zones -->
+                    <section class="home-setup-workspace" data-home-setup-panel="zones" hidden>
+                        <article class="setup-block">
+                            <div class="setup-block-heading">
+                                <div>
+                                    <span>CLEANING ZONES</span>
+                                    <strong>How areas clean together</strong>
+                                </div>
+                                <b id="zoneSetupCount">—</b>
+                            </div>
+
+                            <form class="zone-editor-form" id="zoneForm">
+                                <input id="zoneIdInput" type="hidden">
+                                <input
+                                    id="zoneNameInput"
+                                    type="text"
+                                    maxlength="100"
+                                    placeholder="Kitchen + Pantry"
+                                    required
+                                >
+                                <input id="zoneColorInput" type="color" value="#79cbd0" aria-label="Zone color">
+                                <input
+                                    id="zoneDescriptionInput"
+                                    type="text"
+                                    maxlength="180"
+                                    placeholder="Optional description"
+                                >
+                                <button class="button button-primary compact-button" type="submit">Save Zone</button>
+                                <button class="button button-quiet compact-button" id="clearZoneButton" type="button">Clear</button>
+                            </form>
+
+                            <p class="setup-helper-copy">
+                                Assign an area to a zone from the Levels & Areas tab.
+                                That same zone will be used by Cleaning.
+                            </p>
+
+                            <div class="compact-record-list" id="zoneList"></div>
+                        </article>
+                    </section>
+
+                    <!-- Inventory -->
+                    <section class="home-setup-workspace" data-home-setup-panel="inventory" hidden>
+                        <article class="setup-block">
+                            <div class="setup-block-heading">
+                                <div>
+                                    <span>INVENTORY</span>
+                                    <strong>Storage areas</strong>
+                                </div>
+                                <b id="inventorySetupCount">—</b>
+                            </div>
+
+                            <form class="system-editor-form" id="inventoryLocationForm">
+                                <input id="inventoryLocationIdInput" type="hidden">
+                                <input
+                                    id="inventoryLocationNameInput"
+                                    type="text"
+                                    maxlength="100"
+                                    placeholder="Walk-In Pantry"
+                                    required
+                                >
+
+                                <select id="inventoryLocationTypeInput">
+                                    <option value="storage">Storage</option>
+                                    <option value="pantry">Pantry</option>
+                                    <option value="refrigerator">Refrigerator</option>
+                                    <option value="freezer">Freezer</option>
+                                    <option value="beverage">Beverage</option>
+                                    <option value="household_supplies">Household supplies</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+
+                                <select id="inventoryRoomInput">
+                                    <option value="">No linked area</option>
+                                </select>
+
+                                <button class="button button-primary compact-button" type="submit">Save</button>
+                                <button class="button button-quiet compact-button" id="clearInventoryButton" type="button">Clear</button>
+                            </form>
+
+                            <div class="compact-record-list" id="inventoryLocationList"></div>
+                        </article>
+                    </section>
+
+                    <!-- Laundry -->
+                    <section class="home-setup-workspace" data-home-setup-panel="laundry" hidden>
+                        <div class="home-setup-grid two-col">
+                            <article class="setup-block">
+                                <div class="setup-block-heading">
+                                    <div>
+                                        <span>LAUNDRY SYSTEM</span>
+                                        <strong>How this household sorts</strong>
+                                    </div>
+                                </div>
+
+                                <form class="compact-editor-form" id="laundrySystemForm">
+                                    <label>
+                                        <span>Preferred system</span>
+                                        <select id="laundrySystemInput">
+                                            <option value="color">Sort by color</option>
+                                            <option value="person">Wash by person / child</option>
+                                            <option value="hybrid">Hybrid household system</option>
+                                            <option value="custom">Custom / flexible</option>
+                                        </select>
+                                    </label>
+
+                                    <p class="setup-helper-copy">
+                                        If no system is selected, HOME OS defaults to Sort by color.
+                                    </p>
+
+                                    <button class="button button-primary compact-button" type="submit">
+                                        Save Laundry System
+                                    </button>
+                                </form>
+                            </article>
+
+                            <article class="setup-block">
+                                <div class="setup-block-heading">
+                                    <div>
+                                        <span>LAUNDRY AREAS</span>
+                                        <strong>Equipment locations</strong>
+                                    </div>
+                                    <b id="laundrySetupCount">—</b>
+                                </div>
+
+                                <form class="stacked-inline-form" id="laundryAreaForm">
+                                    <input id="laundryAreaIdInput" type="hidden">
+
+                                    <div>
+                                        <input
+                                            id="laundryAreaNameInput"
+                                            type="text"
+                                            maxlength="100"
+                                            placeholder="Laundry Room"
+                                            required
+                                        >
+
+                                        <select id="laundryRoomInput">
+                                            <option value="">No linked area</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="inline-checks">
+                                        <label>
+                                            <input id="laundryHasWasherInput" type="checkbox" checked>
+                                            Washer
+                                        </label>
+                                        <label>
+                                            <input id="laundryHasDryerInput" type="checkbox" checked>
+                                            Dryer
+                                        </label>
+                                    </div>
+
+                                    <div class="editor-form-actions">
+                                        <button class="button button-primary compact-button" type="submit">Save Area</button>
+                                        <button class="button button-quiet compact-button" id="clearLaundryButton" type="button">Clear</button>
+                                    </div>
+                                </form>
+
+                                <div class="compact-record-list" id="laundryAreaList"></div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <!-- Home Care -->
+                    <section class="home-setup-workspace" data-home-setup-panel="care" hidden>
+                        <article class="setup-block">
+                            <div class="setup-block-heading">
+                                <div>
+                                    <span>HOME CARE</span>
+                                    <strong>Appliances & recurring-care features</strong>
+                                </div>
+                                <b id="careSetupCount">—</b>
+                            </div>
+
+                            <form class="system-editor-form" id="homeCareFeatureForm">
+                                <input id="homeCareFeatureIdInput" type="hidden">
+                                <input
+                                    id="homeCareFeatureNameInput"
+                                    type="text"
+                                    maxlength="100"
+                                    placeholder="Refrigerator"
+                                    required
+                                >
+
+                                <select id="homeCareFeatureTypeInput">
+                                    <option value="appliance">Appliance</option>
+                                    <option value="home_feature">Home feature</option>
+                                    <option value="exterior">Exterior</option>
+                                    <option value="system">Home system</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+
+                                <select id="homeCareRoomInput">
+                                    <option value="">No linked area</option>
+                                </select>
+
+                                <label class="compact-inline-check">
+                                    <input id="homeCareEnabledInput" type="checkbox" checked>
+                                    Enabled
+                                </label>
+
+                                <button class="button button-primary compact-button" type="submit">Save</button>
+                                <button class="button button-quiet compact-button" id="clearCareButton" type="button">Clear</button>
+                            </form>
+
+                            <p class="setup-helper-copy">
+                                HOME OS can generate care only for features you say this household actually has.
+                            </p>
+
+                            <div class="compact-record-list" id="homeCareFeatureList"></div>
+                        </article>
+                    </section>
+                </section>
+
+                <!-- Session -->
+                <section class="account-settings-panel" data-account-panel="session" hidden>
+                    <div class="settings-panel-heading">
+                        <div>
+                            <span class="account-section-label">SESSION</span>
+                            <h2>Sign out</h2>
+                            <p>End the current HOME OS session on this browser.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-form">
+                        <div class="settings-row">
+                            <div class="settings-row-copy">
+                                <span class="settings-row-title">Current session</span>
+                                <p>Signing out does not change household settings or completed work.</p>
+                            </div>
+
+                            <div class="settings-row-control">
+                                <button class="button button-secondary" id="accountPageSignOut" type="button">
+                                    Sign Out
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </section>
+    </main>
+
+    <!-- Kids mission editor -->
+    <div class="kid-mission-editor-backdrop" id="kidMissionEditorBackdrop" hidden>
+        <section class="kid-mission-editor" role="dialog" aria-modal="true" aria-labelledby="kidMissionEditorTitle">
+            <header class="kid-mission-editor-header">
+                <div>
+                    <span class="account-kicker">KIDS MODE // MISSION BUILDER</span>
+                    <h2 id="kidMissionEditorTitle">Review missions</h2>
+                    <p id="kidMissionEditorSubtitle">
+                        HOME OS starts with age-based recommendations. You decide what stays.
+                        Photos can be added only to missions you create.
+                    </p>
+                </div>
+                <button
+                    class="kid-mission-editor-close"
+                    id="closeKidMissionEditorButton"
+                    type="button"
+                    aria-label="Close mission editor"
+                >
+                    ×
+                </button>
+            </header>
+
+            <div class="kid-mission-editor-summary" aria-label="Mission pack summary">
+                <div class="kid-mission-summary-age">
+                    <span>CURRENT MISSION BAND</span>
+                    <strong id="kidMissionEditorBand">—</strong>
+                    <small>Updates automatically from this child&apos;s birthday.</small>
+                </div>
+                <div class="kid-mission-summary-stat">
+                    <span>ACTIVE</span>
+                    <strong id="kidMissionEditorActiveCount">0</strong>
+                    <small>Shown to child</small>
+                </div>
+                <div class="kid-mission-summary-stat">
+                    <span>REMOVED</span>
+                    <strong id="kidMissionEditorRemovedCount">0</strong>
+                    <small>Ready to restore</small>
+                </div>
+                <div class="kid-mission-summary-stat">
+                    <span>CUSTOM PHOTOS</span>
+                    <strong id="kidMissionEditorVisualCount">0 photos</strong>
+                    <small>Custom missions only</small>
+                </div>
+            </div>
+
+            <div class="kid-mission-editor-scroll">
+                <div class="kid-mission-sticky-tools">
+                    <div class="kid-mission-manager-toolbar">
+                        <div>
+                            <span class="account-kicker">MISSION PACK</span>
+                            <strong>Choose exactly what belongs in this child&apos;s day.</strong>
+                            <p>
+                                Built-in missions are the starting point. Hide what does not fit
+                                and add personal missions to the correct routine.
+                            </p>
+                        </div>
+                        <div class="kid-mission-filter" role="group" aria-label="Mission status filter">
+                            <button type="button" class="is-active" data-kid-mission-filter="active" aria-pressed="true">Active</button>
+                            <button type="button" data-kid-mission-filter="removed" aria-pressed="false">Removed</button>
+                            <button type="button" data-kid-mission-filter="all" aria-pressed="false">All</button>
+                        </div>
+                    </div>
+
+                    <form class="kid-custom-mission-form kid-custom-mission-quick" id="kidCustomMissionForm">
+                        <div class="kid-custom-mission-quick-copy">
+                            <span class="account-kicker">QUICK ADD</span>
+                            <strong>Add a personal mission</strong>
+                        </div>
+                        <div class="kid-custom-mission-fields">
+                            <label>
+                                <span>Mission</span>
+                                <input
+                                    id="kidCustomMissionTitle"
+                                    type="text"
+                                    maxlength="90"
+                                    placeholder="Example: Put lunchbox in the sink"
+                                    required
+                                >
+                            </label>
+                            <label>
+                                <span>Section</span>
+                                <select id="kidCustomMissionRoutine">
+                                    <option value="morning">Morning Routine</option>
+                                    <option value="backpack">Backpack</option>
+                                    <option value="after_school">After School</option>
+                                    <option value="night">Night Routine</option>
+                                    <option value="weekend">Weekend</option>
+                                    <option value="general">My Jobs</option>
+                                </select>
+                            </label>
+                            <button class="button button-primary" type="submit">+ Add Mission</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="kid-mission-editor-list" id="kidMissionEditorList">
+                    <div class="kid-mission-editor-loading">Loading this child’s missions…</div>
+                </div>
+            </div>
+
+            <footer class="kid-mission-editor-footer">
+                <p>
+                    <strong>Visual learning:</strong> HOME OS supplies artwork for built-in missions.
+                    Parent photos are reserved for custom missions so you can use the real object,
+                    room, or routine your child recognizes.
+                </p>
+                <button class="button button-secondary" id="doneKidMissionEditorButton" type="button">Done</button>
+            </footer>
+
+            <input id="kidMissionImageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+        </section>
+    </div>
+
+    <footer id="appFooter"></footer>
+    <div class="app-toast" id="appToast" role="status" aria-live="polite"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/supabase-client.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    <script src="assets/js/core/session.js"></script>
+    <script src="assets/js/core/permissions.js"></script>
+    <script src="assets/js/components/shell.js"></script>
+    <script src="assets/js/services/people-service.js"></script>
+    <script src="assets/js/services/kid-age-service.js"></script>
+
+    <!-- Account modules load before account.js. -->
+    <script src="assets/js/pages/account/account-account.js"></script>
+    <script src="assets/js/pages/account/account-people.js"></script>
+    <script src="assets/js/pages/account/account-kid-missions.js"></script>
+    <script src="assets/js/pages/account/account-tasks.js"></script>
+    <script src="assets/js/pages/account/account-home.js"></script>
+    <script src="assets/js/pages/account/account-render.js"></script>
+    <script src="assets/js/pages/account/account-events.js"></script>
+    <script src="assets/js/pages/account/account-utilities.js"></script>
+
+    <script src="assets/js/pages/account.js"></script>
+</body>
+</html>

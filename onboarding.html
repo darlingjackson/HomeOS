@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<!--
+============================================================================
+HOMEOS // ONBOARDING
+
+    Guided household setup after account creation.
+    onboarding.js builds the 8 setup steps inside this page.
+
+    Keep the page IDs in sync with onboarding.js.
+============================================================================
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Set up the people, spaces and home systems used by HomeOS.">
+    <title>Set Up Your Home | HomeOS</title>
+
+    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/onboarding.css">
+</head>
+
+<body
+    class="onboarding-page"
+    data-page="onboarding"
+    data-shell-mode="setup"
+>
+    <!-- 01 // ACCESSIBILITY + SHARED SHELL MOUNTS -->
+    <a class="skip-link" href="#mainContent">Skip to setup</a>
+
+    <header id="appHeader"></header>
+
+    <!-- 02 // ONBOARDING APPLICATION SHELL -->
+    <main class="app-main onboarding-main" id="mainContent">
+        <section class="onboarding-shell" aria-labelledby="stepTitle">
+
+            <!-- 02A // ACCOUNT IDENTITY + STEP PROGRESS RAIL -->
+            <aside class="onboarding-rail" aria-label="Home setup progress">
+                <div class="onboarding-user-chip">
+                    <span class="onboarding-user-avatar" id="onboardingUserAvatar" aria-hidden="true">H</span>
+                    <span class="onboarding-user-copy">
+                        <small>SIGNED IN AS</small>
+                        <strong id="onboardingUserName">HomeOS User</strong>
+                    </span>
+                    <span class="onboarding-setup-badge">HOME SETUP</span>
+                </div>
+
+                <div class="onboarding-rail-copy">
+                    <span class="onboarding-kicker">BUILD YOUR HOMEOS</span>
+                    <h1>Make it fit your home.</h1>
+                    <p>
+                        Add the people, spaces and systems HomeOS should know about.
+                        Start simple — every part can be adjusted later.
+                    </p>
+                </div>
+
+                <!-- onboarding.js renders all 8 progress items into this mount. -->
+                <nav
+                    class="onboarding-progress"
+                    id="onboardingProgress"
+                    aria-label="Home setup steps"
+                ></nav>
+
+                <div class="onboarding-rail-footer">
+                    <span class="onboarding-status-dot" aria-hidden="true"></span>
+                    <span>Each step saves when you continue.</span>
+                </div>
+            </aside>
+
+            <!-- 02B // ACTIVE STEP WORKSPACE -->
+            <section class="onboarding-workspace">
+                <header class="onboarding-workspace-header">
+                    <div class="onboarding-workspace-heading">
+                        <span class="onboarding-kicker" id="stepKicker">STEP 01 OF 08</span>
+                        <h2 id="stepTitle">Tell us about your home</h2>
+                        <p id="stepDescription">Choose the name and type used across your HomeOS.</p>
+                    </div>
+
+                    <div class="onboarding-guide-chip" aria-label="Setup flexibility">
+                        <span>YOU CAN CHANGE THIS LATER</span>
+                        <strong>Build the version that fits today.</strong>
+                        <small>People, spaces and systems remain editable from Account.</small>
+                    </div>
+                </header>
+
+                <!-- Error/status mount controlled by onboarding.js. -->
+                <div
+                    class="onboarding-alert"
+                    id="onboardingAlert"
+                    hidden
+                    role="alert"
+                    aria-live="assertive"
+                ></div>
+
+                <!-- 03 // DYNAMIC STEP CONTENT
+                     onboarding.js owns the contents of #onboardingStep. -->
+                <div class="onboarding-step-wrap">
+                    <section
+                        class="onboarding-step"
+                        id="onboardingStep"
+                        aria-live="polite"
+                        aria-atomic="false"
+                    ></section>
+                </div>
+
+                <!-- 04 // STEP NAVIGATION + SAVE STATE -->
+                <footer class="onboarding-actions">
+                    <button
+                        class="onboarding-button onboarding-button-secondary"
+                        id="onboardingBack"
+                        type="button"
+                    >
+                        <span aria-hidden="true">←</span>
+                        Back
+                    </button>
+
+                    <div class="onboarding-action-right">
+                        <span class="onboarding-save-state" id="onboardingSaveState" aria-live="polite">Ready</span>
+                        <button
+                            class="onboarding-button onboarding-button-primary"
+                            id="onboardingNext"
+                            type="button"
+                        >
+                            Continue
+                            <span aria-hidden="true">→</span>
+                        </button>
+                    </div>
+                </footer>
+            </section>
+        </section>
+    </main>
+
+    <footer id="appFooter"></footer>
+
+    <!-- 05 // SCRIPT DEPENDENCIES
+         Load order matters: Supabase -> core -> shell -> services -> page controller. -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/supabase-client.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    <script src="assets/js/core/session.js"></script>
+    <script src="assets/js/core/permissions.js"></script>
+    <script src="assets/js/components/shell.js"></script>
+    <script src="assets/js/services/onboarding-service.js"></script>
+    <script src="assets/js/services/home-setup-service.js"></script>
+    <script src="assets/js/services/kid-age-service.js"></script>
+    <script src="assets/js/pages/onboarding.js"></script>
+</body>
+</html>

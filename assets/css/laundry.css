@@ -1,0 +1,3038 @@
+/* ============================================================
+   HOMEOS // LAUNDRY
+
+   Styles for laundry.html and the Laundry workspace.
+   Shared HomeOS styles stay in app.css.
+============================================================ */
+
+body[data-page="laundry"] {
+    --laundry-bg: #f6f3ef;
+    --laundry-panel: rgba(255, 255, 255, .88);
+    --laundry-panel-strong: #fffdfa;
+    --laundry-line: rgba(65, 68, 78, .13);
+    --laundry-line-strong: rgba(94, 179, 184, .32);
+    --laundry-text: #23252d;
+    --laundry-copy: #6f7480;
+    --laundry-faint: #969ba7;
+    --laundry-blush: #d49aab;
+    --laundry-blush-deep: #b87489;
+    --laundry-aqua: #8fd8d8;
+    --laundry-aqua-deep: #4daeb3;
+    --laundry-cream: #f4ede4;
+    --laundry-ivory: #e8dcc9;
+    --laundry-ivory-light: #f4ebde;
+    --laundry-cocoa: #8a6d58;
+    --laundry-sage: #8ea58d;
+    --laundry-warn: #bf8649;
+    --laundry-danger: #ad6870;
+    --laundry-shadow: 0 20px 60px rgba(56, 58, 68, .08);
+    background: linear-gradient(rgba(90, 94, 107, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(90, 94, 107, .045) 1px, transparent 1px), radial-gradient(circle at 10% 10%, rgba(212, 154, 171, .09), transparent 26%), radial-gradient(circle at 90% 18%, rgba(143, 216, 216, .09), transparent 26%), var(--laundry-bg);
+    background-size: 34px 34px, 34px 34px, auto, auto, auto;
+}
+
+body.dark[data-page="laundry"] {
+    --laundry-bg: #0d1015;
+    --laundry-panel: rgba(27, 30, 37, .92);
+    --laundry-panel-strong: #1c2028;
+    --laundry-line: rgba(255, 255, 255, .10);
+    --laundry-line-strong: rgba(143, 216, 216, .28);
+    --laundry-text: #f5f1ed;
+    --laundry-copy: #b8b5bd;
+    --laundry-faint: #8d9099;
+    --laundry-cream: #2a2521;
+    --laundry-ivory: #d8c8b3;
+    --laundry-ivory-light: #efe4d5;
+    --laundry-shadow: 0 24px 70px rgba(0, 0, 0, .30);
+    background: linear-gradient(rgba(255, 255, 255, .028) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .028) 1px, transparent 1px), radial-gradient(circle at 10% 10%, rgba(212, 154, 171, .06), transparent 26%), radial-gradient(circle at 90% 18%, rgba(143, 216, 216, .06), transparent 26%), var(--laundry-bg);
+    background-size: 34px 34px, 34px 34px, auto, auto, auto;
+}
+
+.laundry-main {
+    width: min(1480px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 40px 0 92px;
+    color: var(--laundry-text);
+}
+
+.laundry-kicker,
+.laundry-card-topline span,
+.laundry-guide-message span,
+.laundry-starting-note span {
+    display: block;
+    color: var(--laundry-faint);
+    font: 800 12px/1.25 var(--font-sans, "DM Sans", sans-serif);
+    letter-spacing: .13em;
+    text-transform: uppercase;
+}
+
+.laundry-intro {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 24px;
+}
+
+.laundry-intro h1,
+.laundry-section-heading h2,
+.laundry-tracker-copy h2,
+.laundry-buddy-copy h2,
+.laundry-dialog h2 {
+    margin: 8px 0 0;
+    font-family: var(--font-serif, "Playfair Display", serif);
+    font-weight: 500;
+    letter-spacing: -.035em;
+    color: var(--laundry-text);
+}
+
+.laundry-intro h1 {
+    max-width: 760px;
+    font-size: clamp(44px, 5vw, 76px);
+    line-height: .96;
+}
+
+.laundry-intro h1 em {
+    color: var(--laundry-blush-deep);
+    font-weight: 500;
+}
+
+.laundry-intro p {
+    max-width: 780px;
+    margin: 18px 0 0;
+    color: var(--laundry-copy);
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+.laundry-intro-actions {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    flex: 0 0 auto;
+}
+
+.laundry-setup-link {
+    min-height: 45px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 14px;
+    color: var(--laundry-copy);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    background: var(--laundry-panel);
+}
+
+.laundry-top-grid {
+    display: grid;
+    grid-template-columns: minmax(350px, .74fr) minmax(0, 1.26fr);
+    gap: 22px;
+    margin-bottom: 24px;
+}
+
+.laundry-guide-card,
+.laundry-tracker-card,
+.laundry-section,
+.laundry-buddy-card,
+.laundry-active-card {
+    border: 1px solid var(--laundry-line);
+    border-radius: 28px;
+    background: var(--laundry-panel);
+    box-shadow: var(--laundry-shadow);
+    overflow: hidden;
+}
+
+.laundry-suggestion-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 18px;
+    border: 1px solid rgba(143, 216, 216, .26);
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(143, 216, 216, .09), rgba(212, 154, 171, .06)), var(--laundry-panel-strong);
+}
+
+.laundry-suggestion-card + .laundry-suggestion-card {
+    margin-top: 10px;
+}
+
+.laundry-suggestion-copy span {
+    display: block;
+    color: var(--laundry-aqua-deep);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .10em;
+    text-transform: uppercase;
+}
+
+.laundry-suggestion-copy h3 {
+    margin: 6px 0 0;
+    color: var(--laundry-text);
+    font-size: 18px;
+}
+
+.laundry-suggestion-copy p {
+    margin: 6px 0 0;
+    color: var(--laundry-copy);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.laundry-suggestion-action {
+    min-width: 142px;
+    min-height: 43px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 13px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--laundry-blush), var(--laundry-blush-deep));
+    font: 750 12.5px/1.2 var(--font-sans, "DM Sans", sans-serif);
+    cursor: pointer;
+}
+
+@media (max-width:640px) {
+    .laundry-suggestion-card {
+        grid-template-columns: 1fr;
+    }
+
+    .laundry-suggestion-action {
+        width: 100%;
+    }
+}
+
+.laundry-history-panel {
+    border: 1px solid var(--laundry-line);
+    border-radius: 28px;
+    background: var(--laundry-panel);
+    box-shadow: var(--laundry-shadow);
+    overflow: hidden;
+}
+
+.laundry-guide-card,
+.laundry-tracker-card {
+    padding: 22px;
+    min-height: 520px;
+}
+
+.laundry-card-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.laundry-card-topline strong {
+    font: 800 11px/1 var(--font-sans, "DM Sans", sans-serif);
+    letter-spacing: .1em;
+    color: var(--laundry-aqua-deep);
+    border: 1px solid var(--laundry-line);
+    border-radius: 999px;
+    padding: 9px 11px;
+    background: rgba(143, 216, 216, .07);
+}
+
+.laundry-guide-visual {
+    position: relative;
+    min-height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.laundry-guide-orbit {
+    position: absolute;
+    border: 1px solid rgba(143, 216, 216, .14);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.laundry-guide-orbit.orbit-one {
+    width: 290px;
+    height: 290px;
+}
+
+.laundry-guide-orbit.orbit-two {
+    width: 230px;
+    height: 230px;
+    border-color: rgba(212, 154, 171, .15);
+}
+
+.laundry-guide-mascot {
+    position: relative;
+    z-index: 2;
+    width: min(320px, 88%);
+    height: auto;
+    max-height: 330px;
+    object-fit: contain;
+    filter: drop-shadow(0 18px 34px rgba(74, 58, 49, .14));
+    animation: laundryGuideFloat 5s ease-in-out infinite alternate;
+}
+
+@keyframes laundryGuideFloat {
+    from {
+        transform: translateY(2px) rotate(-.45deg);
+    }
+
+    to {
+        transform: translateY(-5px) rotate(.45deg);
+    }
+}
+
+.laundry-guide-message {
+    padding: 17px 18px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 19px;
+    background: linear-gradient(135deg, rgba(212, 154, 171, .08), rgba(143, 216, 216, .07)), var(--laundry-panel-strong);
+}
+
+.laundry-guide-message p {
+    margin: 7px 0 0;
+    color: var(--laundry-text);
+    font-size: 15.5px;
+    line-height: 1.55;
+    font-weight: 650;
+}
+
+.laundry-tracker-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.laundry-tracker-main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 34px;
+    align-items: center;
+    padding: 24px 8px 18px;
+}
+
+.laundry-tracker-ring {
+    width: 220px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    margin: auto;
+    background: radial-gradient(circle at center, var(--laundry-panel-strong) 0 58%, transparent 59%), conic-gradient(var(--laundry-aqua-deep) 0 var(--tracker-progress), rgba(108, 113, 124, .12) var(--tracker-progress) 360deg);
+    box-shadow: inset 0 0 0 12px rgba(255, 255, 255, .16), 0 20px 45px rgba(72, 87, 93, .10);
+    position: relative;
+}
+
+.laundry-tracker-ring::before {
+    content: "";
+    position: absolute;
+    inset: 17px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 50%;
+}
+
+.laundry-tracker-center {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.laundry-tracker-center strong {
+    display: block;
+    font: 500 52px/1 var(--font-serif, "Playfair Display", serif);
+    color: var(--laundry-text);
+}
+
+.laundry-tracker-center span {
+    display: block;
+    margin-top: 8px;
+    font: 800 11px/1.2 var(--font-sans, "DM Sans", sans-serif);
+    letter-spacing: .12em;
+    color: var(--laundry-faint);
+}
+
+.laundry-tracker-copy h2 {
+    font-size: clamp(34px, 3vw, 52px);
+    line-height: 1.02;
+}
+
+.laundry-tracker-copy > p {
+    margin: 14px 0 0;
+    color: var(--laundry-copy);
+    font-size: 15.5px;
+    line-height: 1.65;
+}
+
+.laundry-tracker-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.laundry-tracker-stats div {
+    padding: 14px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 17px;
+    background: var(--laundry-panel-strong);
+}
+
+.laundry-tracker-stats span {
+    display: block;
+    color: var(--laundry-faint);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.laundry-tracker-stats strong {
+    display: block;
+    margin-top: 5px;
+    color: var(--laundry-text);
+    font-size: 20px;
+}
+
+.laundry-profile-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 17px;
+    border-top: 1px solid var(--laundry-line);
+}
+
+.laundry-profile-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 11px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 999px;
+    color: var(--laundry-copy);
+    background: var(--laundry-panel-strong);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.laundry-profile-pill i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--laundry-aqua-deep);
+    box-shadow: 0 0 0 4px rgba(77, 174, 179, .10);
+}
+
+.laundry-section {
+    padding: 26px;
+    margin-bottom: 24px;
+}
+
+.laundry-section-heading {
+    display: grid;
+    grid-template-columns: minmax(0, .9fr) minmax(320px, 1.1fr);
+    gap: 28px;
+    align-items: end;
+    margin-bottom: 20px;
+}
+
+.laundry-section-heading.compact {
+    display: block;
+    margin-bottom: 17px;
+}
+
+.laundry-section-heading h2 {
+    font-size: clamp(36px, 3.6vw, 56px);
+    line-height: 1;
+}
+
+.laundry-section-heading.compact h2 {
+    font-size: clamp(31px, 3vw, 44px);
+}
+
+.laundry-section-heading p {
+    margin: 0;
+    color: var(--laundry-copy);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.laundry-section-heading.compact p {
+    margin-top: 10px;
+}
+
+.laundry-starting-note {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(212, 154, 171, .22);
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(212, 154, 171, .08), rgba(143, 216, 216, .055));
+}
+
+.laundry-starting-note strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 15px;
+    color: var(--laundry-text);
+}
+
+.laundry-starting-note p {
+    max-width: 720px;
+    margin: 0;
+    color: var(--laundry-copy);
+    font-size: 13.5px;
+    line-height: 1.55;
+}
+
+.laundry-starting-note[hidden] {
+    display: none;
+}
+
+.laundry-category-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.laundry-category-card {
+    --category-accent: var(--laundry-aqua);
+    --category-soft: rgba(143, 216, 216, .09);
+    position: relative;
+    min-height: 245px;
+    display: flex;
+    flex-direction: column;
+    padding: 17px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 21px;
+    background: linear-gradient(180deg, var(--category-soft), transparent 45%), var(--laundry-panel-strong);
+    overflow: hidden;
+}
+
+.laundry-category-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 5px;
+    background: var(--category-accent);
+}
+
+.laundry-category-card[data-category="darks"] {
+    --category-accent: #4a4a52;
+    --category-soft: rgba(74, 74, 82, .08);
+}
+
+.laundry-category-card[data-category="lights"] {
+    --category-accent: #9bcfd2;
+    --category-soft: rgba(155, 207, 210, .10);
+}
+
+.laundry-category-card[data-category="whites"] {
+    --category-accent: #d9cdbf;
+    --category-soft: rgba(217, 205, 191, .16);
+}
+
+.laundry-category-card[data-category="towels"] {
+    --category-accent: #91a791;
+    --category-soft: rgba(145, 167, 145, .11);
+}
+
+.laundry-category-card[data-category="linens"] {
+    --category-accent: #c69aa7;
+    --category-soft: rgba(198, 154, 167, .10);
+}
+
+.laundry-category-card[data-category="mats_rugs"] {
+    --category-accent: #9a7962;
+    --category-soft: rgba(154, 121, 98, .10);
+}
+
+.laundry-category-card[data-category="delicates"],
+.laundry-category-card[data-category="special"] {
+    --category-accent: #d999ad;
+    --category-soft: rgba(217, 153, 173, .11);
+}
+
+.laundry-category-card[data-pressure="overdue"] {
+    border-color: rgba(173, 104, 112, .28);
+}
+
+.laundry-category-card[data-pressure="due"] {
+    border-color: rgba(191, 134, 73, .25);
+}
+
+.laundry-category-card[data-pressure="fresh"] {
+    border-color: rgba(91, 154, 111, .22);
+}
+
+.laundry-category-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.laundry-day-chip,
+.laundry-age-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 27px;
+    padding: 0 9px;
+    border-radius: 999px;
+    border: 1px solid var(--laundry-line);
+    background: rgba(255, 255, 255, .34);
+    color: var(--laundry-copy);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .03em;
+}
+
+body.dark[data-page="laundry"] .laundry-day-chip,
+body.dark[data-page="laundry"] .laundry-age-chip {
+    background: rgba(255, 255, 255, .035);
+}
+
+.laundry-category-card h3 {
+    margin: 20px 0 0;
+    color: var(--laundry-text);
+    font-size: 18px;
+    line-height: 1.3;
+}
+
+.laundry-category-card p {
+    margin: 8px 0 0;
+    color: var(--laundry-copy);
+    font-size: 13.5px;
+    line-height: 1.52;
+}
+
+.laundry-category-card .laundry-category-status {
+    margin-top: 14px;
+    color: var(--laundry-text);
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.laundry-category-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 18px;
+}
+
+.laundry-category-actions button {
+    min-height: 42px;
+    border-radius: 13px;
+    border: 1px solid var(--laundry-line);
+    background: transparent;
+    color: var(--laundry-copy);
+    font: 750 12.5px/1.2 var(--font-sans, "DM Sans", sans-serif);
+    cursor: pointer;
+}
+
+.laundry-category-actions button.primary {
+    color: #fff;
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--laundry-blush), var(--laundry-blush-deep));
+}
+
+.laundry-category-actions button.done {
+    color: #4b7c5e;
+    background: rgba(120, 177, 137, .08);
+    border-color: rgba(120, 177, 137, .24);
+}
+
+.laundry-live-grid {
+    display: grid;
+    grid-template-columns: minmax(340px, .72fr) minmax(0, 1.28fr);
+    gap: 22px;
+    margin-bottom: 24px;
+}
+
+.laundry-buddy-card,
+.laundry-active-card {
+    padding: 24px;
+    min-height: 510px;
+}
+
+.laundry-buddy-card {
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+.laundry-buddy-copy h2 {
+    font-size: clamp(34px, 3vw, 46px);
+    line-height: 1;
+}
+
+.laundry-buddy-copy p {
+    margin: 12px 0 0;
+    color: var(--laundry-copy);
+    line-height: 1.6;
+    font-size: 14.5px;
+}
+
+.laundry-buddy-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.laundry-buddy-meta span {
+    padding: 8px 10px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 999px;
+    color: var(--laundry-copy);
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+.laundry-buddy-visual {
+    position: relative;
+    min-height: 285px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    overflow: hidden;
+}
+
+.laundry-basket {
+    width: 210px;
+    height: 150px;
+    position: relative;
+    z-index: 3;
+    transform-origin: 50% 100%;
+    transition: transform .5s ease;
+}
+
+.basket-rim {
+    position: absolute;
+    left: 11px;
+    right: 11px;
+    top: 3px;
+    height: 34px;
+    border-radius: 18px;
+    border: 4px solid #b39e83;
+    background: linear-gradient(180deg, var(--laundry-ivory-light), var(--laundry-ivory));
+    box-shadow: 0 8px 12px rgba(75, 58, 45, .10);
+}
+
+.basket-body {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    top: 24px;
+    bottom: 0;
+    border: 4px solid #b39e83;
+    border-top-width: 3px;
+    border-radius: 18px 18px 42px 42px;
+    background: linear-gradient(90deg, rgba(170, 145, 116, .18) 2px, transparent 2px) 0 0/18px 18px, linear-gradient(rgba(170, 145, 116, .16) 2px, transparent 2px) 0 0/18px 18px, linear-gradient(180deg, var(--laundry-ivory-light), var(--laundry-ivory));
+    box-shadow: 0 18px 24px rgba(75, 58, 45, .13);
+}
+
+.basket-eye {
+    position: absolute;
+    top: 47px;
+    width: 7px;
+    height: 9px;
+    background: #55493f;
+    border-radius: 50%;
+}
+
+.basket-eye.left {
+    left: 53px;
+}
+
+.basket-eye.right {
+    right: 53px;
+}
+
+.basket-mouth {
+    position: absolute;
+    width: 28px;
+    height: 12px;
+    left: 50%;
+    top: 74px;
+    transform: translateX(-50%);
+    border-bottom: 3px solid #65564a;
+    border-radius: 0 0 50% 50%;
+}
+
+.laundry-pile {
+    position: absolute;
+    z-index: 2;
+    bottom: 125px;
+    width: 220px;
+    height: 150px;
+    transition: transform .5s ease, bottom .5s ease;
+}
+
+.cloth {
+    position: absolute;
+    width: 95px;
+    height: 50px;
+    border-radius: 24px 18px 26px 16px;
+    box-shadow: 0 8px 16px rgba(58, 52, 50, .08);
+    transform-origin: center;
+}
+
+.cloth-a {
+    left: 21px;
+    bottom: 10px;
+    background: #a6cfd0;
+    transform: rotate(-8deg);
+}
+
+.cloth-b {
+    right: 16px;
+    bottom: 18px;
+    background: #d49aab;
+    transform: rotate(11deg);
+}
+
+.cloth-c {
+    left: 58px;
+    bottom: 48px;
+    background: #d9cbbb;
+    transform: rotate(3deg);
+}
+
+.cloth-d {
+    left: 18px;
+    bottom: 74px;
+    background: #7f8d83;
+    transform: rotate(-14deg);
+}
+
+.cloth-e {
+    right: 19px;
+    bottom: 82px;
+    background: #7b7173;
+    transform: rotate(14deg);
+}
+
+.cloth-f {
+    left: 64px;
+    bottom: 112px;
+    width: 82px;
+    height: 42px;
+    background: #c7ad91;
+    transform: rotate(-4deg);
+}
+
+.cloth-g {
+    left: 3px;
+    bottom: 106px;
+    width: 76px;
+    height: 40px;
+    background: #839b98;
+    transform: rotate(-22deg);
+}
+
+.cloth-h {
+    right: 0;
+    bottom: 112px;
+    width: 78px;
+    height: 42px;
+    background: #c48c9f;
+    transform: rotate(21deg);
+}
+
+.laundry-smell {
+    position: absolute;
+    z-index: 5;
+    width: 34px;
+    height: 105px;
+    bottom: 226px;
+    opacity: 0;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(92, 74, 58, .10));
+}
+
+.laundry-smell::before,
+.laundry-smell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-left: 5px solid rgba(130, 116, 82, .58);
+    border-radius: 50%;
+}
+
+.laundry-smell::after {
+    left: 9px;
+    top: 16px;
+    height: 76px;
+    border-left-color: rgba(173, 104, 112, .42);
+}
+
+.laundry-smell.smell-one {
+    left: 28%;
+    transform: rotate(-9deg);
+}
+
+.laundry-smell.smell-two {
+    right: 28%;
+    transform: rotate(10deg);
+}
+
+.laundry-smell.smell-three {
+    left: 49%;
+    bottom: 244px;
+    transform: rotate(2deg) scale(.88);
+}
+
+.laundry-stale-dots {
+    position: absolute;
+    z-index: 5;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(130, 116, 82, .58);
+    opacity: 0;
+    box-shadow: 14px -12px 0 rgba(173, 104, 112, .36), -10px -24px 0 rgba(130, 116, 82, .34);
+    pointer-events: none;
+}
+
+.laundry-stale-dots.stale-a {
+    left: 24%;
+    bottom: 264px;
+}
+
+.laundry-stale-dots.stale-b {
+    right: 24%;
+    bottom: 276px;
+    transform: scale(.8);
+}
+
+.laundry-stale-dots.stale-c {
+    left: 49%;
+    bottom: 296px;
+    transform: scale(.65);
+}
+
+.laundry-buddy-card[data-buddy-state="building"] .laundry-pile {
+    transform: scale(1.05);
+}
+
+.laundry-buddy-card[data-buddy-state="full"] .laundry-pile {
+    transform: scale(1.16) translateY(-8px);
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .laundry-pile {
+    transform: scale(1.38) translateY(-28px);
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .cloth-a {
+    transform: translate(-18px, -2px) rotate(-18deg);
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .cloth-b {
+    transform: translate(18px, -8px) rotate(19deg);
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .cloth-d {
+    transform: translate(-24px, -16px) rotate(-28deg);
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .cloth-e {
+    transform: translate(23px, -13px) rotate(26deg);
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .cloth-g {
+    transform: translate(-20px, -18px) rotate(-34deg);
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .cloth-h {
+    transform: translate(20px, -20px) rotate(32deg);
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .laundry-smell,
+.laundry-buddy-card[data-buddy-state="overflow"] .laundry-stale-dots {
+    opacity: 1;
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .laundry-smell {
+    animation: laundryStale 2.25s ease-in-out infinite alternate;
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .stale-a {
+    animation: laundryStaleDots 2.4s ease-in-out infinite alternate;
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .stale-b {
+    animation: laundryStaleDots 2.8s .3s ease-in-out infinite alternate;
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .stale-c {
+    animation: laundryStaleDots 2.2s .6s ease-in-out infinite alternate;
+}
+
+.laundry-buddy-card[data-buddy-state="full"] .basket-mouth,
+.laundry-buddy-card[data-buddy-state="overflow"] .basket-mouth {
+    border-bottom: 0;
+    border-top: 3px solid #65564a;
+    border-radius: 50% 50% 0 0;
+    top: 82px;
+}
+
+.laundry-buddy-card[data-buddy-state="overflow"] .laundry-basket {
+    animation: laundryBasketGroan 3.4s ease-in-out infinite alternate;
+}
+
+@keyframes laundryStale {
+    from {
+        transform: translateY(6px) rotate(-7deg) scale(.94);
+        opacity: .46;
+    }
+
+    to {
+        transform: translateY(-14px) rotate(7deg) scale(1.08);
+        opacity: .92;
+    }
+}
+
+@keyframes laundryStaleDots {
+    from {
+        opacity: .30;
+        transform: translateY(2px) scale(.82);
+    }
+
+    to {
+        opacity: .85;
+        transform: translateY(-13px) scale(1.08);
+    }
+}
+
+@keyframes laundryBasketGroan {
+    from {
+        transform: rotate(-.6deg);
+    }
+
+    to {
+        transform: rotate(.6deg);
+    }
+}
+
+.active-loads-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.laundry-empty {
+    min-height: 160px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 7px;
+    padding: 26px;
+    text-align: center;
+    border: 1px dashed var(--laundry-line);
+    border-radius: 20px;
+    color: var(--laundry-copy);
+    background: rgba(255, 255, 255, .18);
+}
+
+.laundry-empty strong {
+    color: var(--laundry-text);
+    font-size: 15px;
+}
+
+.laundry-empty span {
+    max-width: 460px;
+    font-size: 13.5px;
+    line-height: 1.55;
+}
+
+.laundry-load-card {
+    padding: 17px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 20px;
+    background: var(--laundry-panel-strong);
+}
+
+.laundry-load-card.is-due {
+    border-color: rgba(212, 154, 171, .35);
+    box-shadow: 0 0 0 3px rgba(212, 154, 171, .06);
+}
+
+.laundry-stage-track {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 16px;
+}
+
+.laundry-stage-step {
+    min-height: 47px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 7px 9px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 12px;
+    color: var(--laundry-faint);
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.laundry-stage-step small {
+    margin-top: 2px;
+    font-size: 9px;
+    text-transform: uppercase;
+}
+
+.laundry-stage-step.current {
+    color: var(--laundry-text);
+    border-color: rgba(143, 216, 216, .35);
+    background: rgba(143, 216, 216, .09);
+}
+
+.laundry-stage-step.done {
+    color: #66826a;
+    background: rgba(142, 165, 141, .09);
+}
+
+.laundry-load-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 14px;
+}
+
+.laundry-load-actions button {
+    min-height: 37px;
+    padding: 0 11px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 11px;
+    background: transparent;
+    color: var(--laundry-copy);
+    font-size: 11.5px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.laundry-load-actions button.primary {
+    color: #fff;
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--laundry-blush), var(--laundry-blush-deep));
+}
+
+.laundry-history-panel {
+    margin-bottom: 10px;
+}
+
+.laundry-history-panel summary {
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 0 24px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.laundry-history-panel summary::-webkit-details-marker {
+    display: none;
+}
+
+.laundry-history-panel summary strong {
+    display: block;
+    color: var(--laundry-text);
+    font-size: 14px;
+}
+
+.laundry-history-panel summary small {
+    display: block;
+    margin-top: 4px;
+    color: var(--laundry-faint);
+    font-size: 12px;
+}
+
+.laundry-history-list {
+    padding: 0 24px 22px;
+}
+
+.laundry-history-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 13px 0;
+    border-top: 1px solid var(--laundry-line);
+}
+
+.laundry-history-row h3 {
+    margin: 0;
+    color: var(--laundry-text);
+    font-size: 14px;
+}
+
+.laundry-history-row p,
+.laundry-history-row time {
+    margin: 3px 0 0;
+    color: var(--laundry-faint);
+    font-size: 11.5px;
+}
+
+.laundry-dialog {
+    width: min(720px, calc(100% - 28px));
+    border: 1px solid var(--laundry-line);
+    border-radius: 26px;
+    padding: 0;
+    color: var(--laundry-text);
+    background: var(--laundry-panel-strong);
+    box-shadow: 0 32px 90px rgba(0, 0, 0, .24);
+}
+
+.laundry-dialog::backdrop {
+    background: rgba(10, 12, 16, .56);
+    backdrop-filter: blur(8px);
+}
+
+.laundry-dialog form {
+    padding: 24px;
+}
+
+.laundry-dialog-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.laundry-dialog-head h2 {
+    font-size: 38px;
+}
+
+.laundry-dialog-close {
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 13px;
+    background: transparent;
+    color: var(--laundry-copy);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.laundry-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 22px;
+}
+
+.laundry-field {
+    display: grid;
+    gap: 7px;
+}
+
+.laundry-field.wide {
+    grid-column: 1/-1;
+}
+
+.laundry-field > span {
+    color: var(--laundry-copy);
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.laundry-field select,
+.laundry-field input {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 13px;
+    padding: 0 13px;
+    color: var(--laundry-text);
+    background: var(--laundry-panel);
+    font: 650 14px/1.2 var(--font-sans, "DM Sans", sans-serif);
+    outline: none;
+}
+
+.laundry-field select:focus,
+.laundry-field input:focus {
+    border-color: var(--laundry-aqua-deep);
+    box-shadow: 0 0 0 3px rgba(77, 174, 179, .09);
+}
+
+.laundry-minute-input {
+    position: relative;
+}
+
+.laundry-minute-input small {
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--laundry-faint);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.laundry-minute-input input {
+    padding-right: 48px;
+}
+
+.laundry-dialog-note {
+    margin-top: 15px;
+    padding: 13px 14px;
+    border-radius: 14px;
+    color: var(--laundry-copy);
+    background: rgba(143, 216, 216, .07);
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+.laundry-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 18px;
+}
+
+@media (max-width:1100px) {
+    .laundry-top-grid,
+    .laundry-live-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .laundry-guide-card,
+    .laundry-tracker-card,
+    .laundry-buddy-card,
+    .laundry-active-card {
+        min-height: unset;
+    }
+
+    .laundry-category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width:760px) {
+    .laundry-main {
+        width: min(100% - 22px, 1480px);
+        padding-top: 26px;
+    }
+
+    .laundry-intro {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .laundry-intro-actions {
+        width: 100%;
+    }
+
+    .laundry-intro-actions .button,
+    .laundry-setup-link {
+        flex: 1;
+    }
+
+    .laundry-tracker-main {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .laundry-section-heading {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .laundry-starting-note {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .laundry-category-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .laundry-tracker-stats {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+
+@media (max-width:520px) {
+    .laundry-intro h1 {
+        font-size: 43px;
+    }
+
+    .laundry-guide-card,
+    .laundry-tracker-card,
+    .laundry-section,
+    .laundry-buddy-card,
+    .laundry-active-card {
+        padding: 18px;
+        border-radius: 22px;
+    }
+
+    .laundry-tracker-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .laundry-category-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .laundry-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .laundry-field.wide {
+        grid-column: auto;
+    }
+
+    .laundry-stage-track {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (prefers-reduced-motion:reduce) {
+    .laundry-guide-mascot,
+    .laundry-smell,
+    .laundry-basket {
+        animation: none !important;
+    }
+}
+
+/* --- Buddy + live loads --- */
+
+body[data-page="laundry"] .laundry-live-grid {
+    grid-template-columns: minmax(360px, .82fr) minmax(0, 1.18fr);
+    align-items: stretch;
+}
+
+body[data-page="laundry"] .laundry-buddy-card {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    grid-template-rows: none;
+    min-width: 0;
+    overflow: hidden;
+}
+
+body[data-page="laundry"] .laundry-buddy-copy {
+    width: 100%;
+    min-width: 0;
+    position: relative;
+    z-index: 6;
+}
+
+body[data-page="laundry"] .laundry-buddy-copy h2 {
+    max-width: none;
+    margin-right: 0;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+body[data-page="laundry"] .laundry-buddy-visual {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    margin-top: 8px;
+    min-height: 300px;
+    align-self: stretch;
+}
+
+body[data-page="laundry"] .laundry-active-card {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    grid-template-rows: none;
+    min-width: 0;
+    overflow: hidden;
+}
+
+body[data-page="laundry"] .laundry-active-card > .laundry-section-heading.compact {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    margin: 0 0 20px;
+}
+
+body[data-page="laundry"] .laundry-active-card > .laundry-section-heading.compact > div,
+body[data-page="laundry"] .laundry-active-card > .laundry-section-heading.compact > p {
+    width: 100%;
+    max-width: 760px;
+}
+
+body[data-page="laundry"] .active-loads-grid {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-content: start;
+}
+
+body[data-page="laundry"] .laundry-load-card,
+body[data-page="laundry"] .laundry-suggestion-card,
+body[data-page="laundry"] .laundry-empty {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+body[data-page="laundry"] .laundry-load-card {
+    padding: 20px;
+}
+
+body[data-page="laundry"] .laundry-load-top,
+body[data-page="laundry"] .laundry-stage-track {
+    width: 100%;
+}
+
+@media (max-width:1100px) {
+    body[data-page="laundry"] .laundry-live-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Buddy + live loads --- */
+
+body[data-page="laundry"] .laundry-live-grid {
+    grid-template-columns: minmax(320px, .72fr) minmax(0, 1.28fr);
+    gap: 20px;
+    align-items: start;
+}
+
+body[data-page="laundry"] .laundry-buddy-card,
+body[data-page="laundry"] .laundry-active-card {
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: start;
+}
+
+body[data-page="laundry"] .laundry-buddy-card {
+    padding: 24px 24px 20px;
+}
+
+body[data-page="laundry"] .laundry-active-card {
+    padding: 24px;
+}
+
+body[data-page="laundry"] .laundry-buddy-copy h2 {
+    font-size: clamp(34px, 3vw, 46px);
+    line-height: .98;
+    margin-top: 8px;
+}
+
+body[data-page="laundry"] .laundry-buddy-copy p {
+    max-width: 390px;
+    margin-top: 10px;
+}
+
+body[data-page="laundry"] .laundry-buddy-meta {
+    margin-top: 14px;
+}
+
+body[data-page="laundry"] .laundry-buddy-visual {
+    min-height: 245px !important;
+    height: 245px;
+    max-height: 245px;
+    margin-top: 4px;
+    overflow: visible;
+    align-items: flex-end;
+}
+
+body[data-page="laundry"] .laundry-basket {
+    width: 165px;
+    height: 118px;
+    transform: translateY(-2px);
+}
+
+body[data-page="laundry"] .basket-rim {
+    left: 9px;
+    right: 9px;
+    top: 3px;
+    height: 27px;
+    border-width: 3px;
+}
+
+body[data-page="laundry"] .basket-body {
+    left: 19px;
+    right: 19px;
+    top: 20px;
+    border-width: 3px;
+    border-radius: 16px 16px 34px 34px;
+}
+
+body[data-page="laundry"] .basket-eye {
+    top: 37px;
+    width: 6px;
+    height: 8px;
+}
+
+body[data-page="laundry"] .basket-eye.left {
+    left: 41px;
+}
+
+body[data-page="laundry"] .basket-eye.right {
+    right: 41px;
+}
+
+body[data-page="laundry"] .basket-mouth {
+    width: 23px;
+    top: 59px;
+    border-bottom-width: 2px;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="full"] .basket-mouth,
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overflow"] .basket-mouth {
+    top: 66px;
+    border-top-width: 2px;
+}
+
+body[data-page="laundry"] .laundry-pile {
+    width: 178px;
+    height: 118px;
+    bottom: 91px;
+    transform-origin: 50% 100%;
+}
+
+body[data-page="laundry"] .cloth {
+    width: 76px;
+    height: 40px;
+    border-radius: 20px 15px 22px 14px;
+}
+
+body[data-page="laundry"] .cloth-a {
+    left: 18px;
+    bottom: 8px;
+}
+
+body[data-page="laundry"] .cloth-b {
+    right: 14px;
+    bottom: 14px;
+}
+
+body[data-page="laundry"] .cloth-c {
+    left: 46px;
+    bottom: 38px;
+}
+
+body[data-page="laundry"] .cloth-d {
+    left: 14px;
+    bottom: 58px;
+}
+
+body[data-page="laundry"] .cloth-e {
+    right: 14px;
+    bottom: 64px;
+}
+
+body[data-page="laundry"] .cloth-f {
+    left: 51px;
+    bottom: 86px;
+    width: 66px;
+    height: 34px;
+}
+
+body[data-page="laundry"] .cloth-g {
+    left: 2px;
+    bottom: 82px;
+    width: 62px;
+    height: 32px;
+}
+
+body[data-page="laundry"] .cloth-h {
+    right: 0;
+    bottom: 86px;
+    width: 63px;
+    height: 34px;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="building"] .laundry-pile {
+    transform: scale(1.02);
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="full"] .laundry-pile {
+    transform: scale(1.08) translateY(-3px);
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overflow"] .laundry-pile {
+    transform: scale(1.16) translateY(-9px);
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overflow"] .cloth-a {
+    transform: translate(-7px, -1px) rotate(-16deg);
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overflow"] .cloth-b {
+    transform: translate(7px, -4px) rotate(17deg);
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overflow"] .cloth-d {
+    transform: translate(-9px, -5px) rotate(-22deg);
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overflow"] .cloth-e {
+    transform: translate(9px, -6px) rotate(23deg);
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overflow"] .cloth-g {
+    transform: translate(-8px, -6px) rotate(-26deg);
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overflow"] .cloth-h {
+    transform: translate(8px, -7px) rotate(28deg);
+}
+
+body[data-page="laundry"] .laundry-smell {
+    width: 26px;
+    height: 76px;
+    bottom: 176px;
+    z-index: 7;
+}
+
+body[data-page="laundry"] .laundry-smell::before,
+body[data-page="laundry"] .laundry-smell::after {
+    border-left-width: 4px;
+}
+
+body[data-page="laundry"] .laundry-smell.smell-one {
+    left: 30%;
+}
+
+body[data-page="laundry"] .laundry-smell.smell-two {
+    right: 30%;
+}
+
+body[data-page="laundry"] .laundry-smell.smell-three {
+    left: 49%;
+    bottom: 188px;
+}
+
+body[data-page="laundry"] .laundry-stale-dots.stale-a {
+    left: 27%;
+    bottom: 205px;
+}
+
+body[data-page="laundry"] .laundry-stale-dots.stale-b {
+    right: 27%;
+    bottom: 214px;
+}
+
+body[data-page="laundry"] .laundry-stale-dots.stale-c {
+    left: 49%;
+    bottom: 225px;
+}
+
+body[data-page="laundry"] .laundry-active-card > .laundry-section-heading.compact {
+    margin-bottom: 16px;
+}
+
+body[data-page="laundry"] .laundry-active-card .laundry-section-heading.compact h2 {
+    font-size: clamp(34px, 3.2vw, 50px);
+    line-height: .98;
+}
+
+body[data-page="laundry"] .active-loads-grid {
+    align-content: start;
+}
+
+body[data-page="laundry"] .laundry-load-card {
+    max-width: none;
+    padding: 18px;
+}
+
+body[data-page="laundry"] .laundry-empty {
+    min-height: 140px;
+}
+
+body[data-page="laundry"] .laundry-suggestion-card {
+    min-height: 0;
+}
+
+@media (max-width:1100px) {
+    body[data-page="laundry"] .laundry-live-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body[data-page="laundry"] .laundry-buddy-visual {
+        max-width: 420px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+/* --- Laundry system --- */
+
+body[data-page="laundry"] .laundry-system-section {
+    display: block !important;
+    grid-template-columns: none !important;
+    align-items: initial !important;
+    gap: 0 !important;
+}
+
+body[data-page="laundry"] .laundry-system-section > .laundry-section-heading {
+    display: grid;
+    grid-template-columns: minmax(0, .9fr) minmax(320px, 1.1fr);
+    gap: 28px;
+    align-items: end;
+    width: 100%;
+    margin: 0 0 20px;
+}
+
+body[data-page="laundry"] .laundry-system-section > .laundry-starting-note {
+    width: 100%;
+}
+
+body[data-page="laundry"] .laundry-system-section > .laundry-category-grid {
+    width: 100%;
+    position: relative;
+    z-index: 1;
+    margin: 0;
+}
+
+@media (max-width:760px) {
+    body[data-page="laundry"] .laundry-system-section > .laundry-section-heading {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+/* --- Laundry Buddy + machine console --- */
+
+body[data-page="laundry"] .laundry-buddy-visual {
+    transform-origin: 50% 100%;
+}
+
+body[data-page="laundry"] .basket-cheek {
+    position: absolute;
+    top: 62px;
+    width: 15px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(212, 154, 171, .0);
+    transition: opacity .28s ease, background .28s ease, transform .28s ease;
+}
+
+body[data-page="laundry"] .basket-cheek.left {
+    left: 29px;
+}
+
+body[data-page="laundry"] .basket-cheek.right {
+    right: 29px;
+}
+
+body[data-page="laundry"] .basket-eye,
+body[data-page="laundry"] .basket-mouth,
+body[data-page="laundry"] .basket-cheek,
+body[data-page="laundry"] .laundry-pile,
+body[data-page="laundry"] .laundry-smell,
+body[data-page="laundry"] .laundry-stale-dots {
+    transition: opacity .38s ease, transform .38s ease, top .38s ease, width .38s ease, height .38s ease, border-color .38s ease;
+}
+
+/* 0–19% — buried, smelly, sad */
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overwhelmed"] .laundry-pile {
+    transform: scale(1.20) translateY(-12px);
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overwhelmed"] .laundry-smell,
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overwhelmed"] .laundry-stale-dots {
+    opacity: 1;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overwhelmed"] .basket-eye {
+    height: 5px;
+    top: 50px;
+    opacity: .70;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="overwhelmed"] .basket-mouth {
+    top: 84px;
+    border-bottom: 0;
+    border-top: 3px solid #65564a;
+    border-radius: 50% 50% 0 0;
+}
+
+/* 20–39% — still buried, but improving */
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="buried"] .laundry-pile {
+    transform: scale(1.08) translateY(-6px);
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="buried"] .laundry-smell {
+    opacity: .62;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="buried"] .laundry-stale-dots {
+    opacity: .42;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="buried"] .basket-eye {
+    height: 6px;
+    top: 49px;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="buried"] .basket-mouth {
+    top: 80px;
+    width: 25px;
+    border-bottom: 0;
+    border-top: 2px solid #65564a;
+    border-radius: 50% 50% 0 0;
+}
+
+/* 40–59% — tired / neutral */
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="tired"] .laundry-pile {
+    transform: scale(.88) translateY(8px);
+    opacity: .88;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="tired"] .laundry-smell,
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="tired"] .laundry-stale-dots {
+    opacity: .12;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="tired"] .basket-eye {
+    height: 6px;
+    opacity: .82;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="tired"] .basket-mouth {
+    width: 22px;
+    height: 2px;
+    top: 76px;
+    border: 0;
+    border-bottom: 2px solid #65564a;
+    border-radius: 0;
+}
+
+/* 60–79% — recovering / soft smile */
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="recovering"] .laundry-pile {
+    transform: scale(.68) translateY(27px);
+    opacity: .72;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="recovering"] .laundry-smell,
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="recovering"] .laundry-stale-dots {
+    opacity: 0;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="recovering"] .basket-mouth {
+    width: 28px;
+    top: 71px;
+    border-top: 0;
+    border-bottom: 3px solid #65564a;
+    border-radius: 0 0 50% 50%;
+}
+
+/* 80–99% — visibly happy */
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="happy"] .laundry-pile {
+    transform: scale(.46) translateY(56px);
+    opacity: .48;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="happy"] .laundry-smell,
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="happy"] .laundry-stale-dots {
+    opacity: 0;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="happy"] .basket-mouth {
+    width: 34px;
+    top: 69px;
+    border-top: 0;
+    border-bottom: 3px solid #65564a;
+    border-radius: 0 0 55% 55%;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="happy"] .basket-cheek {
+    background: rgba(212, 154, 171, .38);
+}
+
+/* 100% — best clean state */
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="sparkling"] {
+    border-color: rgba(143, 216, 216, .42);
+    background: radial-gradient(circle at 74% 72%, rgba(143, 216, 216, .12), transparent 30%), radial-gradient(circle at 25% 22%, rgba(212, 154, 171, .11), transparent 30%), var(--laundry-panel);
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="sparkling"] .laundry-pile {
+    transform: scale(.22) translateY(135px);
+    opacity: .10;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="sparkling"] .laundry-smell,
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="sparkling"] .laundry-stale-dots {
+    opacity: 0;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="sparkling"] .basket-eye {
+    width: 18px;
+    height: 9px;
+    top: 48px;
+    background: transparent;
+    border-bottom: 3px solid #55493f;
+    border-radius: 0 0 50% 50%;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="sparkling"] .basket-eye.left {
+    left: 34px;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="sparkling"] .basket-eye.right {
+    right: 34px;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="sparkling"] .basket-mouth {
+    width: 40px;
+    top: 67px;
+    border-top: 0;
+    border-bottom: 4px solid #65564a;
+    border-radius: 0 0 60% 60%;
+}
+
+body[data-page="laundry"] .laundry-buddy-card[data-buddy-state="sparkling"] .basket-cheek {
+    background: rgba(212, 154, 171, .50);
+    transform: scale(1.14);
+}
+
+body[data-page="laundry"] .laundry-buddy-visual.is-hopping {
+    animation: laundryBuddyHop .68s cubic-bezier(.22, .82, .31, 1);
+}
+
+body[data-page="laundry"] .laundry-buddy-visual.is-big-hopping {
+    animation: laundryBuddyBigHop 1.12s cubic-bezier(.18, .92, .22, 1);
+}
+
+@keyframes laundryBuddyHop {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0);
+    }
+
+    28% {
+        transform: translateY(-18px) rotate(-1.2deg);
+    }
+
+    48% {
+        transform: translateY(0) rotate(.8deg);
+    }
+
+    68% {
+        transform: translateY(-9px) rotate(.8deg);
+    }
+}
+
+@keyframes laundryBuddyBigHop {
+    0%,
+    100% {
+        transform: translateY(0) scale(1) rotate(0);
+    }
+
+    20% {
+        transform: translateY(-34px) scale(1.03) rotate(-2deg);
+    }
+
+    38% {
+        transform: translateY(0) scale(.99) rotate(1deg);
+    }
+
+    55% {
+        transform: translateY(-22px) scale(1.02) rotate(1.5deg);
+    }
+
+    73% {
+        transform: translateY(0) scale(1) rotate(-.8deg);
+    }
+
+    86% {
+        transform: translateY(-9px) scale(1.01);
+    }
+}
+
+body[data-page="laundry"] .laundry-load-console {
+    position: relative;
+    overflow: hidden;
+    border-color: rgba(77, 174, 179, .24);
+    background: linear-gradient(rgba(89, 109, 113, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(89, 109, 113, .035) 1px, transparent 1px), radial-gradient(circle at 12% 18%, rgba(143, 216, 216, .10), transparent 34%), var(--laundry-panel-strong);
+    background-size: 22px 22px, 22px 22px, auto, auto;
+}
+
+body.dark[data-page="laundry"] .laundry-load-console {
+    background: linear-gradient(rgba(255, 255, 255, .025) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .025) 1px, transparent 1px), radial-gradient(circle at 12% 18%, rgba(143, 216, 216, .08), transparent 34%), var(--laundry-panel-strong);
+    background-size: 22px 22px, 22px 22px, auto, auto;
+}
+
+body[data-page="laundry"] .laundry-machine-console {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 22px;
+    align-items: center;
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 19px;
+    background: rgba(255, 255, 255, .36);
+}
+
+body.dark[data-page="laundry"] .laundry-machine-console {
+    background: rgba(255, 255, 255, .025);
+}
+
+body[data-page="laundry"] .laundry-machine-visual {
+    display: grid;
+    place-items: center;
+    min-height: 190px;
+}
+
+body[data-page="laundry"] .machine-shell {
+    position: relative;
+    width: 150px;
+    height: 174px;
+    border: 1px solid rgba(69, 79, 86, .22);
+    border-radius: 18px;
+    background: linear-gradient(180deg, #f7f8f7, #e7efef);
+    box-shadow: 0 16px 30px rgba(49, 63, 67, .11), inset 0 -10px 18px rgba(89, 112, 116, .06);
+}
+
+body[data-page="laundry"] .laundry-machine-console[data-cycle="drying"] .machine-shell {
+    background: linear-gradient(180deg, #fbf7f3, #eee4dc);
+}
+
+body[data-page="laundry"] .machine-control-panel {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 0 12px;
+    border-bottom: 1px solid rgba(69, 79, 86, .12);
+}
+
+body[data-page="laundry"] .machine-knob {
+    margin-right: auto;
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(56, 66, 72, .52);
+    border-radius: 50%;
+    background: #f2c86d;
+    box-shadow: inset 0 0 0 5px #f7e0a8;
+}
+
+body[data-page="laundry"] .machine-light {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 1px solid rgba(56, 66, 72, .20);
+    background: #fff;
+}
+
+body[data-page="laundry"] .machine-light:first-of-type {
+    background: var(--laundry-aqua);
+    box-shadow: 0 0 10px rgba(77, 174, 179, .36);
+}
+
+body[data-page="laundry"] .laundry-machine-console[data-cycle="drying"] .machine-light:first-of-type {
+    background: #e4aa83;
+    box-shadow: 0 0 10px rgba(196, 120, 78, .30);
+}
+
+body[data-page="laundry"] .machine-door {
+    position: absolute;
+    left: 50%;
+    top: 58px;
+    width: 96px;
+    height: 96px;
+    transform: translateX(-50%);
+    border: 9px solid rgba(255, 255, 255, .95);
+    border-radius: 50%;
+    background: #1b2429;
+    box-shadow: 0 0 0 2px rgba(53, 65, 72, .16), inset 0 0 0 4px rgba(0, 0, 0, .20);
+    overflow: hidden;
+}
+
+body[data-page="laundry"] .machine-drum {
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .25), transparent 20%), #71878a;
+}
+
+body[data-page="laundry"] .laundry-machine-console.is-running .machine-drum {
+    animation: laundryMachineTumble 2.1s linear infinite;
+}
+
+body[data-page="laundry"] .laundry-machine-console[data-cycle="drying"].is-running .machine-drum {
+    animation-duration: 1.55s;
+}
+
+body[data-page="laundry"] .machine-cloth {
+    position: absolute;
+    width: 32px;
+    height: 22px;
+    border-radius: 46% 54% 42% 58%;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, .08);
+}
+
+body[data-page="laundry"] .machine-cloth.c1 {
+    left: 8px;
+    top: 16px;
+    background: #d59caf;
+}
+
+body[data-page="laundry"] .machine-cloth.c2 {
+    right: 7px;
+    top: 24px;
+    background: #d9c9b5;
+}
+
+body[data-page="laundry"] .machine-cloth.c3 {
+    left: 24px;
+    bottom: 9px;
+    background: #8cb0a1;
+}
+
+body[data-page="laundry"] .machine-cloth.c4 {
+    right: 19px;
+    bottom: 15px;
+    background: #a6d6d8;
+}
+
+body[data-page="laundry"] .machine-water {
+    position: absolute;
+    left: -12px;
+    right: -12px;
+    bottom: -5px;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(143, 216, 216, .44), rgba(77, 174, 179, .54));
+    border-radius: 50% 50% 0 0;
+    transform-origin: 50% 100%;
+    animation: laundryWaterMove 1.4s ease-in-out infinite alternate;
+}
+
+body[data-page="laundry"] .machine-warmth {
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    border: 4px solid rgba(221, 157, 116, .18);
+    box-shadow: inset 0 0 24px rgba(221, 157, 116, .26), 0 0 18px rgba(221, 157, 116, .12);
+    animation: laundryDryerWarmth 1.3s ease-in-out infinite alternate;
+}
+
+body[data-page="laundry"] .machine-base-line {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 13px;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(77, 174, 179, .55);
+}
+
+body[data-page="laundry"] .laundry-machine-console[data-cycle="drying"] .machine-base-line {
+    background: rgba(212, 154, 171, .62);
+}
+
+body[data-page="laundry"] .laundry-machine-console.is-finished .machine-drum,
+body[data-page="laundry"] .laundry-machine-console.is-finished .machine-water,
+body[data-page="laundry"] .laundry-machine-console.is-finished .machine-warmth {
+    animation: none;
+}
+
+body[data-page="laundry"] .laundry-machine-console.is-finished .machine-shell {
+    box-shadow: 0 0 0 3px rgba(143, 216, 216, .10), 0 18px 34px rgba(49, 63, 67, .11);
+}
+
+body[data-page="laundry"] .machine-cycle-copy {
+    min-width: 0;
+}
+
+body[data-page="laundry"] .machine-cycle-copy > span {
+    display: block;
+    color: var(--laundry-aqua-deep);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .11em;
+}
+
+body[data-page="laundry"] .laundry-machine-console[data-cycle="drying"] .machine-cycle-copy > span {
+    color: var(--laundry-blush-deep);
+}
+
+body[data-page="laundry"] .machine-cycle-copy > strong {
+    display: block;
+    margin-top: 7px;
+    color: var(--laundry-text);
+    font-family: var(--font-serif, "Playfair Display", serif);
+    font-size: clamp(25px, 2.4vw, 36px);
+    font-weight: 500;
+    line-height: 1;
+}
+
+body[data-page="laundry"] .machine-cycle-progress {
+    height: 7px;
+    margin-top: 18px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(91, 99, 110, .10);
+}
+
+body[data-page="laundry"] .machine-cycle-progress i {
+    display: block;
+    width: var(--cycle-progress);
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--laundry-aqua-deep), var(--laundry-aqua));
+    transition: width .45s linear;
+}
+
+body[data-page="laundry"] .laundry-machine-console[data-cycle="drying"] .machine-cycle-progress i {
+    background: linear-gradient(90deg, var(--laundry-blush-deep), #e9b28f);
+}
+
+body[data-page="laundry"] .machine-cycle-copy small {
+    display: block;
+    margin-top: 7px;
+    color: var(--laundry-faint);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+body[data-page="laundry"] .laundry-handoff-console {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-top: 17px;
+    padding: 15px 16px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(212, 154, 171, .07), rgba(143, 216, 216, .06));
+}
+
+body[data-page="laundry"] .laundry-handoff-console span {
+    color: var(--laundry-faint);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .10em;
+}
+
+body[data-page="laundry"] .laundry-handoff-console strong {
+    color: var(--laundry-text);
+    font-size: 13px;
+}
+
+body[data-page="laundry"] .laundry-load-actions button {
+    transition: transform .16s ease, opacity .16s ease, background .16s ease;
+}
+
+body[data-page="laundry"] .laundry-load-actions button:active {
+    transform: scale(.97);
+}
+
+body[data-page="laundry"] .laundry-load-actions button.is-working,
+body[data-page="laundry"] .laundry-load-actions button:disabled {
+    cursor: wait;
+    opacity: .58;
+}
+
+@keyframes laundryMachineTumble {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes laundryWaterMove {
+    from {
+        transform: translateX(-5px) rotate(-4deg) scaleY(.94);
+    }
+
+    to {
+        transform: translateX(6px) rotate(4deg) scaleY(1.04);
+    }
+}
+
+@keyframes laundryDryerWarmth {
+    from {
+        opacity: .48;
+        transform: scale(.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1.04);
+    }
+}
+
+/* --- Completion states --- */
+
+.laundry-celebration-dialog {
+    width: min(430px, calc(100% - 28px));
+    border: 1px solid rgba(143, 216, 216, .35);
+    border-radius: 28px;
+    padding: 28px;
+    text-align: center;
+    color: var(--laundry-text);
+    background: radial-gradient(circle at 22% 15%, rgba(212, 154, 171, .14), transparent 30%), radial-gradient(circle at 80% 30%, rgba(143, 216, 216, .14), transparent 30%), var(--laundry-panel-strong);
+    box-shadow: 0 32px 90px rgba(0, 0, 0, .24);
+    overflow: hidden;
+}
+
+.laundry-celebration-dialog::backdrop {
+    background: rgba(13, 16, 21, .48);
+    backdrop-filter: blur(7px);
+}
+
+.laundry-celebration-dialog h2 {
+    margin: 12px 0 0;
+    font-size: 40px;
+    line-height: .98;
+}
+
+.laundry-celebration-dialog p {
+    margin: 13px auto 20px;
+    max-width: 340px;
+    color: var(--laundry-copy);
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.laundry-celebration-buddy {
+    position: relative;
+    width: 180px;
+    height: 170px;
+    margin: 0 auto 10px;
+    display: grid;
+    place-items: end center;
+}
+
+.laundry-celebration-dialog[open] .laundry-celebration-buddy {
+    animation: laundryCelebrationHop 1.12s ease-in-out infinite;
+}
+
+.celebration-basket {
+    position: relative;
+    width: 132px;
+    height: 106px;
+}
+
+.celebration-basket-rim {
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    top: 0;
+    height: 24px;
+    border: 3px solid #b39e83;
+    border-radius: 15px;
+    background: linear-gradient(180deg, var(--laundry-ivory-light), var(--laundry-ivory));
+}
+
+.celebration-basket-body {
+    position: absolute;
+    left: 15px;
+    right: 15px;
+    top: 17px;
+    bottom: 0;
+    border: 3px solid #b39e83;
+    border-radius: 14px 14px 31px 31px;
+    background: linear-gradient(90deg, rgba(170, 145, 116, .16) 2px, transparent 2px) 0 0/15px 15px, linear-gradient(rgba(170, 145, 116, .14) 2px, transparent 2px) 0 0/15px 15px, linear-gradient(180deg, var(--laundry-ivory-light), var(--laundry-ivory));
+}
+
+.celebration-eye {
+    position: absolute;
+    top: 34px;
+    width: 17px;
+    height: 9px;
+    border-bottom: 3px solid #55493f;
+    border-radius: 0 0 50% 50%;
+}
+
+.celebration-eye.left {
+    left: 22px;
+}
+
+.celebration-eye.right {
+    right: 22px;
+}
+
+.celebration-cheek {
+    position: absolute;
+    top: 53px;
+    width: 15px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(212, 154, 171, .48);
+}
+
+.celebration-cheek.left {
+    left: 15px;
+}
+
+.celebration-cheek.right {
+    right: 15px;
+}
+
+.celebration-smile {
+    position: absolute;
+    left: 50%;
+    top: 52px;
+    width: 35px;
+    height: 17px;
+    transform: translateX(-50%);
+    border-bottom: 4px solid #65564a;
+    border-radius: 0 0 60% 60%;
+}
+
+.celebration-sparkle {
+    position: absolute;
+    color: #d4aa62;
+    font-size: 18px;
+    animation: laundrySparkle 1.2s ease-in-out infinite alternate;
+}
+
+.celebration-sparkle.s1 {
+    left: 9px;
+    top: 46px;
+}
+
+.celebration-sparkle.s2 {
+    right: 8px;
+    top: 27px;
+    animation-delay: .25s;
+}
+
+.celebration-sparkle.s3 {
+    right: 26px;
+    bottom: 14px;
+    animation-delay: .5s;
+}
+
+.laundry-celebration-confetti i {
+    position: absolute;
+    width: 7px;
+    height: 13px;
+    border-radius: 4px;
+    background: var(--laundry-blush);
+    opacity: .75;
+    animation: laundryConfettiFloat 2.2s ease-in-out infinite alternate;
+}
+
+.laundry-celebration-confetti i:nth-child(1) {
+    left: 8%;
+    top: 18%;
+    transform: rotate(18deg);
+}
+
+.laundry-celebration-confetti i:nth-child(2) {
+    left: 18%;
+    top: 7%;
+    background: var(--laundry-aqua);
+    animation-delay: .2s;
+}
+
+.laundry-celebration-confetti i:nth-child(3) {
+    right: 13%;
+    top: 14%;
+    background: #d7b96d;
+    animation-delay: .4s;
+}
+
+.laundry-celebration-confetti i:nth-child(4) {
+    right: 6%;
+    top: 36%;
+    background: var(--laundry-aqua);
+    animation-delay: .6s;
+}
+
+.laundry-celebration-confetti i:nth-child(5) {
+    left: 10%;
+    bottom: 28%;
+    background: #d7b96d;
+    animation-delay: .8s;
+}
+
+.laundry-celebration-confetti i:nth-child(6) {
+    right: 15%;
+    bottom: 20%;
+    animation-delay: 1s;
+}
+
+.laundry-celebration-confetti i:nth-child(7) {
+    left: 28%;
+    top: 22%;
+    background: var(--laundry-aqua);
+    animation-delay: .45s;
+}
+
+.laundry-celebration-confetti i:nth-child(8) {
+    right: 28%;
+    top: 5%;
+    animation-delay: .72s;
+}
+
+@keyframes laundryCelebrationHop {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0);
+    }
+
+    26% {
+        transform: translateY(-23px) rotate(-3deg);
+    }
+
+    52% {
+        transform: translateY(0) rotate(1.5deg);
+    }
+
+    72% {
+        transform: translateY(-12px) rotate(2deg);
+    }
+}
+
+@keyframes laundrySparkle {
+    from {
+        opacity: .35;
+        transform: scale(.75) rotate(-6deg);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1.16) rotate(8deg);
+    }
+}
+
+@keyframes laundryConfettiFloat {
+    from {
+        transform: translateY(1px) rotate(-12deg);
+        opacity: .35;
+    }
+
+    to {
+        transform: translateY(-13px) rotate(18deg);
+        opacity: .9;
+    }
+}
+
+@media (max-width:700px) {
+    body[data-page="laundry"] .laundry-machine-console {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    body[data-page="laundry"] .machine-cycle-copy > strong {
+        font-size: 29px;
+    }
+
+    body[data-page="laundry"] .laundry-handoff-console {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (prefers-reduced-motion:reduce) {
+    body[data-page="laundry"] .laundry-buddy-visual.is-hopping,
+    body[data-page="laundry"] .laundry-buddy-visual.is-big-hopping,
+    body[data-page="laundry"] .laundry-machine-console.is-running .machine-drum,
+    body[data-page="laundry"] .machine-water,
+    body[data-page="laundry"] .machine-warmth,
+    .laundry-celebration-dialog[open] .laundry-celebration-buddy,
+    .celebration-sparkle,
+    .laundry-celebration-confetti i {
+        animation: none !important;
+    }
+}
+
+/* --- Undo a laundry completion --- */
+
+body[data-page="laundry"] .laundry-category-actions button.undo {
+    color: var(--laundry-blush-deep);
+    border-color: rgba(184, 116, 137, .26);
+    background: rgba(212, 154, 171, .07);
+}
+
+body[data-page="laundry"] .laundry-category-actions button.undo:hover {
+    background: rgba(212, 154, 171, .12);
+}
+
+body[data-page="laundry"] .laundry-history-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+body[data-page="laundry"] .laundry-history-actions time {
+    margin: 0;
+}
+
+body[data-page="laundry"] .laundry-history-actions button {
+    min-height: 34px;
+    padding: 0 10px;
+    border: 1px solid rgba(184, 116, 137, .22);
+    border-radius: 10px;
+    color: var(--laundry-blush-deep);
+    background: rgba(212, 154, 171, .06);
+    font: 750 11.5px/1.2 var(--font-sans, "DM Sans", sans-serif);
+    cursor: pointer;
+}
+
+body[data-page="laundry"] .laundry-history-actions button:active {
+    transform: scale(.97);
+}
+
+/* --- Sticky Laundry Buddy --- */
+
+@media (min-width:1101px) {
+    body[data-page="laundry"] .laundry-live-grid {
+        align-items: start;
+        overflow: visible !important;
+    }
+
+    body[data-page="laundry"] .laundry-buddy-card {
+        position: sticky;
+        top: 92px;
+        align-self: start;
+        z-index: 8;
+        max-height: calc(100vh - 112px);
+        overflow: hidden;
+    }
+
+    body[data-page="laundry"] .laundry-buddy-card .laundry-buddy-visual {
+        flex: 1 1 auto;
+    }
+}
+
+/* On smaller screens, the Buddy stacks normally with the loads. */
+
+@media (max-width:1100px) {
+    body[data-page="laundry"] .laundry-buddy-card {
+        position: relative;
+        top: auto;
+        max-height: none;
+    }
+}
+
+/* --- Active load machine bay --- */
+
+body[data-page="laundry"] .active-loads-grid {
+    display: block;
+}
+
+body[data-page="laundry"] .laundry-machine-bay {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+body[data-page="laundry"] .laundry-queue-shell {
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 18px;
+    background: linear-gradient(rgba(80, 103, 108, .032) 1px, transparent 1px), linear-gradient(90deg, rgba(80, 103, 108, .032) 1px, transparent 1px), rgba(255, 255, 255, .22);
+    background-size: 18px 18px, 18px 18px, auto;
+}
+
+body.dark[data-page="laundry"] .laundry-queue-shell {
+    background: linear-gradient(rgba(255, 255, 255, .025) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .025) 1px, transparent 1px), rgba(255, 255, 255, .018);
+    background-size: 18px 18px, 18px 18px, auto;
+}
+
+body[data-page="laundry"] .laundry-queue-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 3px 3px 12px;
+    border-bottom: 1px solid var(--laundry-line);
+}
+
+body[data-page="laundry"] .laundry-queue-head strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--laundry-text);
+    font-size: 13px;
+}
+
+body[data-page="laundry"] .laundry-queue-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 9px;
+    border: 1px solid rgba(77, 174, 179, .22);
+    border-radius: 999px;
+    color: var(--laundry-aqua-deep);
+    background: rgba(143, 216, 216, .07);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+body[data-page="laundry"] .laundry-queue-live i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--laundry-aqua-deep);
+    box-shadow: 0 0 0 4px rgba(77, 174, 179, .10);
+    animation: laundryQueuePulse 1.8s ease-in-out infinite;
+}
+
+body[data-page="laundry"] .laundry-load-queue {
+    display: grid;
+    gap: 7px;
+    margin-top: 10px;
+}
+
+body[data-page="laundry"] .laundry-queue-item {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid transparent;
+    border-radius: 13px;
+    text-align: left;
+    color: var(--laundry-copy);
+    background: transparent;
+    cursor: pointer;
+    transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+
+body[data-page="laundry"] .laundry-queue-item:hover {
+    background: rgba(143, 216, 216, .045);
+}
+
+body[data-page="laundry"] .laundry-queue-item:active {
+    transform: scale(.985);
+}
+
+body[data-page="laundry"] .laundry-queue-item.is-selected {
+    border-color: rgba(77, 174, 179, .28);
+    background: linear-gradient(135deg, rgba(143, 216, 216, .09), rgba(212, 154, 171, .045));
+}
+
+body[data-page="laundry"] .laundry-queue-item.is-ready {
+    border-color: rgba(212, 154, 171, .30);
+}
+
+body[data-page="laundry"] .queue-number {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 9px;
+    color: var(--laundry-faint);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+body[data-page="laundry"] .laundry-queue-item.is-selected .queue-number {
+    color: var(--laundry-aqua-deep);
+    border-color: rgba(77, 174, 179, .28);
+    background: rgba(143, 216, 216, .08);
+}
+
+body[data-page="laundry"] .queue-copy {
+    min-width: 0;
+}
+
+body[data-page="laundry"] .queue-copy strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--laundry-text);
+    font-size: 12.5px;
+}
+
+body[data-page="laundry"] .queue-copy small {
+    display: block;
+    margin-top: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--laundry-faint);
+    font-size: 10.5px;
+}
+
+body[data-page="laundry"] .queue-stage {
+    padding: 6px 7px;
+    border: 1px solid var(--laundry-line);
+    border-radius: 8px;
+    color: var(--laundry-faint);
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+body[data-page="laundry"] .laundry-selected-load {
+    min-width: 0;
+}
+
+body[data-page="laundry"] .laundry-load-focus {
+    padding: 0;
+    border-radius: 20px;
+}
+
+body[data-page="laundry"] .laundry-focus-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 18px 15px;
+    border-bottom: 1px solid var(--laundry-line);
+}
+
+body[data-page="laundry"] .laundry-focus-header h3 {
+    margin: 5px 0 0;
+    color: var(--laundry-text);
+    font-size: 19px;
+}
+
+body[data-page="laundry"] .laundry-focus-header p {
+    margin: 4px 0 0;
+    color: var(--laundry-copy);
+    font-size: 12px;
+}
+
+body[data-page="laundry"] .laundry-focus-time {
+    text-align: right;
+    flex: 0 0 auto;
+}
+
+body[data-page="laundry"] .laundry-focus-time span {
+    display: block;
+    color: var(--laundry-faint);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+body[data-page="laundry"] .laundry-focus-time strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--laundry-text);
+    font-size: 24px;
+}
+
+body[data-page="laundry"] .laundry-focus-body {
+    padding: 16px 18px 0;
+}
+
+body[data-page="laundry"] .laundry-focus-body .laundry-machine-console {
+    margin-top: 0;
+    grid-template-columns: 145px minmax(0, 1fr);
+    padding: 14px;
+    gap: 18px;
+    border-color: rgba(77, 174, 179, .22);
+}
+
+body[data-page="laundry"] .laundry-focus-body .laundry-machine-visual {
+    min-height: 155px;
+}
+
+body[data-page="laundry"] .laundry-focus-body .machine-shell {
+    width: 122px;
+    height: 142px;
+}
+
+body[data-page="laundry"] .laundry-focus-body .machine-control-panel {
+    height: 35px;
+    padding: 0 9px;
+}
+
+body[data-page="laundry"] .laundry-focus-body .machine-knob {
+    width: 20px;
+    height: 20px;
+}
+
+body[data-page="laundry"] .laundry-focus-body .machine-light {
+    width: 7px;
+    height: 7px;
+}
+
+body[data-page="laundry"] .laundry-focus-body .machine-door {
+    top: 47px;
+    width: 78px;
+    height: 78px;
+    border-width: 7px;
+}
+
+body[data-page="laundry"] .laundry-focus-body .machine-base-line {
+    bottom: 10px;
+}
+
+body[data-page="laundry"] .laundry-focus-footer {
+    padding: 14px 18px 18px;
+}
+
+body[data-page="laundry"] .laundry-stage-track.compact {
+    margin-top: 0;
+}
+
+body[data-page="laundry"] .laundry-stage-track.compact .laundry-stage-step {
+    min-height: 40px;
+    padding: 6px 8px;
+}
+
+body[data-page="laundry"] .laundry-focus-footer .laundry-load-actions {
+    margin-top: 12px;
+}
+
+@keyframes laundryQueuePulse {
+    0%,
+    100% {
+        opacity: .45;
+        transform: scale(.86);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (max-width:980px) {
+    body[data-page="laundry"] .laundry-machine-bay {
+        grid-template-columns: 1fr;
+    }
+
+    body[data-page="laundry"] .laundry-load-queue {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width:620px) {
+    body[data-page="laundry"] .laundry-load-queue {
+        grid-template-columns: 1fr;
+    }
+
+    body[data-page="laundry"] .laundry-focus-body .laundry-machine-console {
+        grid-template-columns: 1fr;
+    }
+
+    body[data-page="laundry"] .laundry-focus-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    body[data-page="laundry"] .laundry-focus-time {
+        text-align: left;
+    }
+}
+
+@media (prefers-reduced-motion:reduce) {
+    body[data-page="laundry"] .laundry-queue-live i {
+        animation: none !important;
+    }
+}

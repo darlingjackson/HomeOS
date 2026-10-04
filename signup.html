@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<!--
+============================================================================
+    HomeOS // Create Account
+
+    Creates a HomeOS account and either starts a new household
+    or joins one through an invitation.
+
+    Keep the signup form IDs and invitation fields in sync with auth-page.js.
+============================================================================
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your HomeOS account and connect it to your household.">
+
+    <title>Create Account | HomeOS</title>
+
+    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/auth.css">
+</head>
+
+<body
+    class="auth-page"
+    data-auth-page="signup"
+    data-page="signup"
+    data-shell-mode="public"
+>
+    <!-- 01 // ACCESSIBILITY + SHARED SHELL MOUNTS -->
+    <a class="skip-link" href="#mainContent">Skip to content</a>
+
+    <header id="appHeader"></header>
+
+    <!-- 02 // CREATE-ACCOUNT EXPERIENCE -->
+    <main class="auth-stage" id="mainContent">
+        <section class="auth-card auth-card-signup" aria-labelledby="authTitle">
+
+            <!-- 02A // HOMEOS INTRO / BRAND PANEL -->
+            <aside class="auth-intelligence-panel" aria-label="About HomeOS">
+                <div class="auth-brand">
+                    <span class="auth-brand-mark" aria-hidden="true">
+                        <img src="assets/images/branding/homeos-icon.png" alt="">
+                    </span>
+
+                    <span class="auth-brand-copy">
+                        <strong>HomeOS</strong>
+                        <span>HOME INTELLIGENCE</span>
+                    </span>
+                </div>
+
+                <div class="auth-intelligence-copy">
+                    <span class="auth-eyebrow">BUILT AROUND YOUR HOUSEHOLD</span>
+
+                    <h1>
+                        Set up home once.
+                        <em>Let HomeOS remember the rest.</em>
+                    </h1>
+
+                    <p>
+                        Create your account first. Then HomeOS will guide you through
+                        the people, spaces and systems that make your home yours.
+                    </p>
+                </div>
+
+                <div class="auth-system-status">
+                    <span class="auth-status-dot" aria-hidden="true"></span>
+                    <span>Flexible setup · change it anytime</span>
+                </div>
+
+                <div class="auth-orbit" aria-hidden="true"></div>
+            </aside>
+
+            <!-- 02B // ACCOUNT FORM PANEL -->
+            <section class="auth-form-panel">
+                <div class="auth-form-heading">
+                    <span class="auth-eyebrow">CREATE ACCOUNT</span>
+                    <h2 id="authTitle">Start your HomeOS.</h2>
+                    <p>
+                        Create your login, then tell us whether you are starting a
+                        household or joining one you were invited to.
+                    </p>
+                </div>
+
+                <!-- Shared authentication error mount; auth-page.js writes the message. -->
+                <div
+                    class="auth-notice auth-notice-error"
+                    id="authError"
+                    hidden
+                    role="alert"
+                    aria-live="assertive"
+                ></div>
+
+                <!-- Replaces the form after Supabase requires email confirmation. -->
+                <div
+                    class="auth-confirmation-card"
+                    id="signupConfirmation"
+                    hidden
+                    role="status"
+                    aria-live="polite"
+                >
+                    <span class="auth-confirmation-icon" aria-hidden="true">✓</span>
+                    <span class="auth-eyebrow">CHECK YOUR EMAIL</span>
+
+                    <h3>Confirm your account.</h3>
+
+                    <p id="signupConfirmationCopy">
+                        We sent a confirmation link to
+                        <strong id="confirmationEmail"></strong>.
+                        Confirm your email, then come back to sign in.
+                    </p>
+
+                    <a class="auth-submit auth-submit-link" href="login.html">
+                        <span>Go to Sign In</span>
+                        <span aria-hidden="true">→</span>
+                    </a>
+                </div>
+
+                <!-- IDs and homePath values below are part of the auth-page.js contract. -->
+                <form
+                    class="auth-form"
+                    id="signupForm"
+                    novalidate
+                    aria-describedby="authError"
+                >
+                    <!-- 03 // ACCOUNT CREDENTIALS -->
+                    <div class="auth-form-section">
+                        <div class="auth-section-heading">
+                            <span>01</span>
+                            <div>
+                                <strong>Your account</strong>
+                                <small>The login you will use for HomeOS.</small>
+                            </div>
+                        </div>
+
+                        <div class="auth-field-grid">
+                            <label class="auth-field">
+                                <span>Your name</span>
+                                <input
+                                    id="signupName"
+                                    name="displayName"
+                                    type="text"
+                                    autocomplete="name"
+                                    placeholder="Your name"
+                                    maxlength="80"
+                                    required
+                                >
+                            </label>
+
+                            <label class="auth-field">
+                                <span>Email</span>
+                                <input
+                                    id="signupEmail"
+                                    name="email"
+                                    type="email"
+                                    autocomplete="email"
+                                    inputmode="email"
+                                    placeholder="you@example.com"
+                                    required
+                                >
+                            </label>
+                        </div>
+
+                        <div class="auth-field-grid">
+                            <label class="auth-field">
+                                <span>Password</span>
+
+                                <div class="auth-password-field">
+                                    <input
+                                        id="signupPassword"
+                                        name="password"
+                                        type="password"
+                                        autocomplete="new-password"
+                                        placeholder="Create a password"
+                                        minlength="8"
+                                        aria-describedby="signupPasswordHint"
+                                        required
+                                    >
+
+                                    <button
+                                        class="auth-password-toggle"
+                                        type="button"
+                                        data-password-toggle="signupPassword"
+                                        aria-label="Show password"
+                                        aria-pressed="false"
+                                    >
+                                        Show
+                                    </button>
+                                </div>
+
+                                <small class="auth-field-hint" id="signupPasswordHint">
+                                    Use at least 8 characters.
+                                </small>
+                            </label>
+
+                            <label class="auth-field">
+                                <span>Confirm password</span>
+
+                                <div class="auth-password-field">
+                                    <input
+                                        id="signupPasswordConfirm"
+                                        name="passwordConfirm"
+                                        type="password"
+                                        autocomplete="new-password"
+                                        placeholder="Repeat your password"
+                                        minlength="8"
+                                        required
+                                    >
+
+                                    <button
+                                        class="auth-password-toggle"
+                                        type="button"
+                                        data-password-toggle="signupPasswordConfirm"
+                                        aria-label="Show password"
+                                        aria-pressed="false"
+                                    >
+                                        Show
+                                    </button>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 04 // HOUSEHOLD CONNECTION PATH -->
+                    <div class="auth-form-section auth-form-section-home">
+                        <div class="auth-section-heading">
+                            <span>02</span>
+                            <div>
+                                <strong>Connect your household</strong>
+                                <small>Start a new home or use an invitation.</small>
+                            </div>
+                        </div>
+
+                        <fieldset class="auth-household-choice">
+                            <legend>Which path fits you?</legend>
+
+                            <label
+                                class="auth-choice-card active"
+                                data-home-choice-card="new"
+                            >
+                                <input
+                                    type="radio"
+                                    name="homePath"
+                                    value="new"
+                                    checked
+                                >
+
+                                <span class="auth-choice-index">NEW</span>
+
+                                <span class="auth-choice-copy">
+                                    <strong>Start a new home</strong>
+                                    <small>We’ll guide you through your household setup next.</small>
+                                </span>
+
+                                <span class="auth-choice-check" aria-hidden="true">✓</span>
+                            </label>
+
+                            <label
+                                class="auth-choice-card"
+                                data-home-choice-card="existing"
+                            >
+                                <input
+                                    type="radio"
+                                    name="homePath"
+                                    value="existing"
+                                >
+
+                                <span class="auth-choice-index">JOIN</span>
+
+                                <span class="auth-choice-copy">
+                                    <strong>Join an existing home</strong>
+                                    <small>Use the private invitation from your household.</small>
+                                </span>
+
+                                <span class="auth-choice-check" aria-hidden="true">✓</span>
+                            </label>
+                        </fieldset>
+
+                        <!-- Only shown when the JOIN path is selected. -->
+                        <div
+                            class="auth-existing-home"
+                            id="existingHomeInvite"
+                            hidden
+                        >
+                            <div class="auth-existing-home-copy">
+                                <span class="auth-eyebrow">HOUSEHOLD INVITATION</span>
+                                <strong>Paste your private invite code.</strong>
+                                <p>
+                                    This code connects your account only to the household
+                                    that invited you. HomeOS does not search or expose other homes.
+                                </p>
+                            </div>
+
+                            <label class="auth-field">
+                                <span>Invite code</span>
+                                <input
+                                    id="signupInviteToken"
+                                    name="inviteToken"
+                                    type="text"
+                                    inputmode="text"
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                    placeholder="Paste your HomeOS invite code"
+                                >
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="auth-submit" id="signupSubmit" type="submit">
+                        <span>Create Account</span>
+                        <span aria-hidden="true">→</span>
+                    </button>
+                </form>
+
+                <p class="auth-trust-note">
+                    You can change household details later from Account.
+                </p>
+
+                <div class="auth-divider"></div>
+
+                <div class="auth-switch">
+                    <span>Already have an account?</span>
+                    <a href="login.html">Sign in</a>
+                </div>
+            </section>
+
+        </section>
+    </main>
+
+    <footer id="appFooter"></footer>
+
+    <!-- 05 // SCRIPT DEPENDENCIES
+         Load order matters: Supabase -> core -> shell -> service -> page controller. -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/supabase-client.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    <script src="assets/js/core/session.js"></script>
+    <script src="assets/js/core/permissions.js"></script>
+
+    <script src="assets/js/components/shell.js"></script>
+
+    <script src="assets/js/services/people-service.js"></script>
+    <script src="assets/js/pages/auth-page.js"></script>
+</body>
+</html>

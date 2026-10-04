@@ -1,0 +1,445 @@
+/* ============================================================
+   HOMEOS // TASK EDITOR
+
+   Shared task editor styles used across HomeOS.
+============================================================ */
+
+.task-editor-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 420;
+    padding: 24px;
+    display: grid;
+    place-items: center;
+    background: rgba(18, 21, 28, 0.50);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.task-editor {
+    width: min(900px, 100%);
+    max-height: min(900px, calc(100vh - 48px));
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    color: var(--text);
+    background: var(--surface);
+    box-shadow: 0 38px 110px rgba(18, 21, 29, 0.30);
+}
+
+.task-editor-header {
+    padding: 25px 27px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 22px;
+    border-bottom: 1px solid var(--border);
+    background: radial-gradient(circle at 96% 0, rgba(127, 203, 208, 0.10), transparent 27%);
+}
+
+.task-editor-kicker {
+    color: var(--text-faint);
+    font-family: var(--font-ui);
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: 0.10em;
+}
+
+.task-editor-header h2 {
+    margin: 7px 0 4px;
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 500;
+    letter-spacing: -0.035em;
+}
+
+.task-editor-header p {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 12px;
+}
+
+.task-editor-close {
+    width: 41px;
+    height: 41px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-soft);
+    background: var(--surface-soft);
+    font-size: 24px;
+}
+
+.task-editor-body {
+    padding: 25px;
+    display: grid;
+    gap: 18px;
+}
+
+.task-editor-section {
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 19px;
+    background: var(--surface-soft);
+}
+
+.task-editor-section-heading {
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: 31px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+}
+
+.task-editor-section-heading > span {
+    width: 31px;
+    height: 31px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--homeos-aqua);
+    background: var(--surface);
+    font-size: 8px;
+    font-weight: 850;
+}
+
+.task-editor-section-heading strong {
+    display: block;
+    font-size: 13px;
+}
+
+.task-editor-section-heading small {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-faint);
+    font-size: 9px;
+}
+
+.task-editor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.task-editor-field {
+    display: grid;
+    gap: 7px;
+}
+
+.task-editor-field.wide {
+    grid-column: 1 / -1;
+}
+
+.task-editor-field > span {
+    color: var(--text);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.task-editor-field input,
+.task-editor-field select,
+.task-editor-field textarea {
+    width: 100%;
+    min-height: 47px;
+    padding: 0 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 11px;
+    outline: none;
+    color: var(--text);
+    background: var(--surface);
+}
+
+.task-editor-field textarea {
+    min-height: 88px;
+    padding-top: 11px;
+    resize: vertical;
+}
+
+.task-editor-field input:focus,
+.task-editor-field select:focus,
+.task-editor-field textarea:focus {
+    border-color: rgba(127, 203, 208, 0.55);
+    box-shadow: 0 0 0 3px rgba(127, 203, 208, 0.08);
+}
+
+.task-mode-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.task-mode-card {
+    min-height: 105px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    color: var(--text-soft);
+    background: var(--surface);
+    text-align: left;
+}
+
+.task-mode-card span {
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.task-mode-card small {
+    font-size: 8px;
+    line-height: 1.45;
+}
+
+.task-mode-card.active {
+    border-color: rgba(170, 160, 228, 0.36);
+    background: linear-gradient(145deg, rgba(170, 160, 228, 0.10), rgba(127, 203, 208, 0.06));
+    box-shadow: inset 0 0 0 1px rgba(170, 160, 228, 0.04);
+}
+
+.task-assignment-workspace {
+    margin-top: 16px;
+}
+
+.task-assignment-label {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.task-assignment-label strong {
+    font-size: 11px;
+}
+
+.task-assignment-label span {
+    color: var(--text-faint);
+    font-size: 9px;
+    text-align: right;
+}
+
+.task-assignment-note {
+    padding: 16px;
+    border: 1px solid rgba(127, 203, 208, 0.22);
+    border-radius: 14px;
+    background: rgba(127, 203, 208, 0.055);
+}
+
+.task-assignment-note strong {
+    display: block;
+    font-size: 12px;
+}
+
+.task-assignment-note p {
+    margin: 5px 0 0;
+    color: var(--text-soft);
+    font-size: 10px;
+    line-height: 1.55;
+}
+
+.task-owner-grid {
+    max-width: 360px;
+    margin-bottom: 15px;
+}
+
+.task-person-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.task-person-choice {
+    min-height: 66px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: 35px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--surface);
+    cursor: pointer;
+}
+
+.task-person-choice input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.task-person-avatar {
+    width: 35px;
+    height: 35px;
+    display: grid;
+    place-items: center;
+    border: 2px solid color-mix(in srgb, var(--person-accent) 38%, transparent);
+    border-radius: 50%;
+    color: var(--text);
+    background: color-mix(in srgb, var(--person-accent) 13%, var(--surface));
+    font-family: var(--font-display);
+    font-size: 15px;
+}
+
+.task-person-copy {
+    min-width: 0;
+}
+
+.task-person-copy strong {
+    display: block;
+    overflow: hidden;
+    color: var(--text);
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task-person-copy small {
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    color: var(--text-faint);
+    font-size: 8px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task-person-check {
+    width: 23px;
+    height: 23px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: transparent;
+    background: var(--surface-soft);
+    font-size: 10px;
+}
+
+.task-person-choice.selected {
+    border-color: color-mix(in srgb, var(--person-accent) 42%, var(--border));
+    background: color-mix(in srgb, var(--person-accent) 7%, var(--surface));
+}
+
+.task-person-choice.selected .task-person-check {
+    color: #ffffff;
+    border-color: var(--person-accent);
+    background: var(--person-accent);
+}
+
+.task-editor-actions {
+    padding: 18px 25px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+    border-top: 1px solid var(--border);
+}
+
+@media (max-width: 900px) {
+    .task-mode-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .task-person-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 620px) {
+    .task-editor-backdrop {
+        padding: 8px;
+    }
+
+    .task-editor {
+        max-height: calc(100vh - 16px);
+        border-radius: 20px;
+    }
+
+    .task-editor-grid,
+    .task-mode-grid,
+    .task-person-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .task-editor-field.wide {
+        grid-column: auto;
+    }
+
+    .task-assignment-label {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .task-assignment-label span {
+        text-align: left;
+    }
+}
+
+/* --- Modal close state --- */
+
+.task-editor-backdrop[hidden] {
+    display: none !important;
+}
+
+#taskEditorSave[disabled] {
+    opacity: .62;
+    cursor: wait;
+}
+
+/* --- Custom repeat days --- */
+
+.task-editor-custom-days {
+    display: grid;
+    gap: 8px;
+}
+
+.task-editor-custom-days[hidden] {
+    display: none !important;
+}
+
+.task-editor-custom-days > span {
+    color: var(--muted, #74747f);
+    font-size: 8px;
+    font-weight: 850;
+    letter-spacing: .08em;
+}
+
+.task-editor-custom-days > div {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.task-editor-custom-days label {
+    min-width: 42px;
+    min-height: 37px;
+    position: relative;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .72);
+    cursor: pointer;
+}
+
+.task-editor-custom-days input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.task-editor-custom-days label:has(input:checked) {
+    border-color: rgba(121, 203, 208, .50);
+    background: rgba(121, 203, 208, .14);
+}
+
+.task-editor-custom-days label span {
+    font-size: 9px;
+    font-weight: 800;
+}

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<!--
+============================================================================
+    HomeOS // Cleaning
+
+    Handles room and zone cleaning, active sessions,
+    recurring Home Care and Lumi.
+
+    Cleaning setup lives in Account > Home Setup.
+============================================================================
+-->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Cleaning | HomeOS</title>
+
+    <meta
+        name="description"
+        content="DARLING HomeOS intelligent cleaning and home care system."
+    >
+
+    <!-- =========================================================
+         SHARED + CLEANING STYLES
+    ========================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="assets/css/app.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="assets/css/cleaning.css"
+    >
+</head>
+
+
+<body data-page="cleaning">
+
+    <!-- Shared navigation -->
+    <header id="appHeader"></header>
+
+
+    <main class="app-main cleaning-main">
+
+        <!-- =====================================================
+             01 // CLEANING OVERVIEW
+        ====================================================== -->
+
+        <section class="cleaning-command-deck">
+
+            <!-- INTRO -->
+            <div class="cleaning-command-copy">
+
+                <div class="cleaning-system-kicker">
+                    <span class="cleaning-live-dot"></span>
+                    HOME CLEANING · SYSTEM ONLINE
+                </div>
+
+                <h1>
+                    Tend one space.<br>
+                    <em>Restore the home.</em>
+                </h1>
+
+                <p class="cleaning-command-lead">
+                    Choose one room for a focused clean or move through a full
+                    household zone. HomeOS remembers what was completed, what
+                    still needs care, and where you stopped.
+                </p>
+
+                <p
+                    class="cleaning-command-time"
+                    id="cleaningDateTime"
+                >
+                    Loading home time...
+                </p>
+
+                <div class="cleaning-command-actions">
+
+                    <button
+                        class="button button-primary"
+                        id="heroRoomMode"
+                        type="button"
+                    >
+                        Clean a Room
+                        <span aria-hidden="true">→</span>
+                    </button>
+
+                    <button
+                        class="button button-secondary"
+                        id="heroZoneMode"
+                        type="button"
+                    >
+                        Clean by Zone
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- CLEANING INTELLIGENCE -->
+            <aside class="cleaning-guide-panel cleaning-intelligence-panel">
+
+                <div class="cleaning-guide-topline">
+
+                    <div>
+                        <span>CLEANING INTELLIGENCE</span>
+                        <strong id="cleaningGuideStatus">SYSTEM ONLINE</strong>
+                    </div>
+
+                    <span class="cleaning-guide-live">
+                        <i></i>
+                        LIVE
+                    </span>
+
+                </div>
+
+                <div class="cleaning-guide-visual cleaning-scan-visual cleaning-mascot-hud" aria-label="HomeOS cleaning recommendation scanner with the HOME OS cleaning mascot">
+                    <div class="cleaning-scan-grid" aria-hidden="true">
+                        <span class="cleaning-scan-ring ring-one"></span>
+                        <span class="cleaning-scan-ring ring-two"></span>
+                        <span class="cleaning-scan-ring ring-three"></span>
+                        <span class="cleaning-scan-sweep"></span>
+                        <i class="cleaning-scan-node node-one"></i>
+                        <i class="cleaning-scan-node node-two"></i>
+                        <i class="cleaning-scan-node node-three"></i>
+                        <i class="cleaning-scan-node node-four"></i>
+                    </div>
+
+                    <img
+                        class="cleaning-hero-mascot"
+                        src="assets/images/branding/cleaning-mascot.png"
+                        alt="HOME OS cleaning mascot holding cleaning supplies"
+                    >
+
+                    <div class="cleaning-scan-core cleaning-scan-readout">
+                        <span>NEXT TARGET</span>
+                        <strong id="cleaningGuideTarget">SCANNING</strong>
+                        <small id="cleaningGuideLevel">HOME SIGNAL</small>
+                    </div>
+
+                    <span class="cleaning-hud-tag cleaning-hud-tag-left">HOME OS GUIDE</span>
+                    <span class="cleaning-hud-tag cleaning-hud-tag-right">LIVE SCAN</span>
+                </div>
+
+                <div class="cleaning-guide-message">
+
+                    <span class="cleaning-guide-label">
+                        NEXT BEST CLEAN
+                    </span>
+
+                    <p id="cleaningGuideMessage">
+                        HomeOS is checking the whole-home cleaning signal.
+                    </p>
+
+                </div>
+
+                <button
+                    class="cleaning-guide-action"
+                    id="guidePrimaryAction"
+                    type="button"
+                >
+                    START RECOMMENDED →
+                </button>
+
+            </aside>
+
+
+            <!-- WHOLE-HOME CLEANING HEALTH -->
+            <aside class="cleaning-core-console" id="cleaningHomeHealthConsole">
+
+                <div class="cleaning-core-console-head">
+
+                    <div>
+                        <span class="ui-kicker">WHOLE-HOME SIGNAL</span>
+                        <h2>Cleaning health</h2>
+                    </div>
+
+                    <span class="cleaning-online-pill">
+                        <i></i>
+                        LIVE
+                    </span>
+
+                </div>
+
+                <div class="cleaning-core-orb-wrap">
+
+                    <div class="cleaning-core-orb" id="homeCleanCoverageRing">
+                        <strong id="homeCleanPercent">0%</strong>
+                        <small>CARE COVERAGE</small>
+                        <span id="homeCleanScore">0 / 0 CARED FOR</span>
+                    </div>
+
+                </div>
+
+                <div class="cleaning-core-metrics cleaning-core-metrics-wide">
+
+                    <div>
+                        <span>Areas</span>
+                        <strong id="mappedSpaceCount">0</strong>
+                    </div>
+
+                    <div>
+                        <span>Cared For</span>
+                        <strong id="roomsCurrentCount">0</strong>
+                    </div>
+
+                    <div>
+                        <span>Attention</span>
+                        <strong id="roomsAttentionCount">0</strong>
+                    </div>
+
+                    <div>
+                        <span>Never</span>
+                        <strong id="roomsNeverCount">0</strong>
+                    </div>
+
+                </div>
+
+                <div class="cleaning-core-footer cleaning-core-footer-wide">
+
+                    <div>
+                        <span>Zones</span>
+                        <strong id="zoneCount">00</strong>
+                    </div>
+
+                    <div>
+                        <span>Active Clean</span>
+                        <strong id="heroActiveCleaning">None</strong>
+                    </div>
+
+                    <div>
+                        <span>Last Reset</span>
+                        <strong id="heroLastCleaned">Not Yet</strong>
+                    </div>
+
+                </div>
+
+                <div class="cleaning-home-signal-line">
+                    <div>
+                        <span>SCOPE</span>
+                        <strong id="heroCurrentFloor">Whole Home</strong>
+                    </div>
+                    <p id="homeCleanSignalText">Waiting for HomeOS to scan your mapped spaces.</p>
+                </div>
+
+            </aside>
+
+        </section>
+
+
+        <!-- =====================================================
+             02 // ACTIVE SESSION
+        ====================================================== -->
+
+        <section
+            class="active-cleaning-strip is-hidden"
+            id="activeCleaningStrip"
+        >
+
+            <div class="active-cleaning-beacon">
+                <span></span>
+            </div>
+
+            <div class="active-cleaning-main">
+                <span class="ui-kicker">ACTIVE CLEAN</span>
+                <h2 id="activeCleaningTitle">Kitchen · Standard</h2>
+                <p id="activeCleaningDetail">Progress saved.</p>
+            </div>
+
+            <div class="active-cleaning-progress">
+
+                <div>
+                    <span>PROGRESS</span>
+                    <strong id="activeCleaningPercent">0%</strong>
+                </div>
+
+                <div class="cleaning-progress-track">
+                    <span id="activeCleaningBar"></span>
+                </div>
+
+            </div>
+
+            <button
+                class="button button-primary"
+                id="resumeCleaningButton"
+                type="button"
+            >
+                Resume Clean
+            </button>
+
+        </section>
+
+
+        <!-- =====================================================
+             03 // BUILD TODAY'S CLEAN
+             One calm flow: type → place → level → checklist.
+        ====================================================== -->
+
+        <section class="cleaning-control-section cleaning-picker-section">
+
+            <div class="cleaning-section-heading cleaning-picker-heading">
+                <div>
+                    <span class="ui-kicker">CHOOSE YOUR CLEAN</span>
+                    <h2>How are we cleaning today?</h2>
+                </div>
+
+                <p>
+                    Choose Area or Zone, pick the exact space, then choose how
+                    much cleaning it needs. Your checklist opens right here.
+                </p>
+            </div>
+
+            <div class="cleaning-flow-card">
+
+                <div class="cleaning-flow-controls">
+
+                    <div class="cleaning-flow-step cleaning-flow-mode">
+                        <span class="cleaning-flow-number">01</span>
+                        <div class="cleaning-flow-step-copy">
+                            <strong>Clean by</strong>
+                            <small>Choose one</small>
+                        </div>
+
+                        <div
+                            class="cleaning-mode-switch cleaning-mode-segmented"
+                            role="tablist"
+                            aria-label="Cleaning type"
+                        >
+                            <button
+                                class="cleaning-mode-button active"
+                                type="button"
+                                data-cleaning-mode="room"
+                                role="tab"
+                            >
+                                <span class="mode-copy"><strong>Area</strong></span>
+                            </button>
+
+                            <button
+                                class="cleaning-mode-button"
+                                type="button"
+                                data-cleaning-mode="zone"
+                                role="tab"
+                            >
+                                <span class="mode-copy"><strong>Zone</strong></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="cleaning-flow-step cleaning-flow-target">
+                        <span class="cleaning-flow-number">02</span>
+                        <div class="cleaning-flow-step-copy">
+                            <strong id="cleaningTargetLabel">Choose an area</strong>
+                            <small id="cleaningTargetHint">Grouped by level</small>
+                        </div>
+
+                        <div class="cleaning-flow-selects">
+                            <div class="cleaning-picker-context" id="roomModeWorkspace">
+                                <div class="cleaning-select-wrap">
+                                    <select id="areaCleanSelect" aria-label="Choose an area to clean"></select>
+                                    <span aria-hidden="true">⌄</span>
+                                </div>
+                            </div>
+
+                            <div class="cleaning-picker-context is-hidden" id="zoneModeWorkspace">
+                                <div class="cleaning-select-wrap">
+                                    <select id="zoneCleanSelect" aria-label="Choose a zone to clean"></select>
+                                    <span aria-hidden="true">⌄</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="cleaning-flow-step cleaning-flow-level"
+                        id="cleaningLevelScreen"
+                    >
+                        <span class="cleaning-flow-number">03</span>
+                        <div class="cleaning-flow-step-copy">
+                            <strong>Choose a level</strong>
+                            <small>Quick, Standard or Deep</small>
+                        </div>
+
+                        <div class="cleaning-inline-levels">
+                            <button class="cleaning-inline-level quick-level" type="button" data-cleaning-level="quick">
+                                <strong>Quick</strong>
+                                <small>Light reset</small>
+                            </button>
+                            <button class="cleaning-inline-level standard-level" type="button" data-cleaning-level="standard">
+                                <strong>Standard</strong>
+                                <small>Full clean</small>
+                            </button>
+                            <button class="cleaning-inline-level deep-level" type="button" data-cleaning-level="deep">
+                                <strong>Deep</strong>
+                                <small>Detailed reset</small>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="cleaning-inline-brief" id="cleaningInlineBrief">
+                    <div>
+                        <span class="ui-kicker" id="cleaningDialogKicker">AREA CLEANING</span>
+                        <strong id="cleaningDialogTitle">Choose an area</strong>
+                    </div>
+                    <p id="cleaningProtocolRecommendation">
+                        Choose a space and HomeOS will recommend the right cleaning level.
+                    </p>
+                </div>
+
+                <!-- ACTIVE CHECKLIST: appears directly below the selections. -->
+                <div class="cleaning-task-screen is-hidden cleaning-inline-task-screen" id="cleaningTaskScreen">
+
+                    <div class="cleaning-session-top">
+                        <div>
+                            <span class="ui-kicker">ACTIVE CLEAN</span>
+                            <h3 id="sessionLevelTitle">Standard Clean</h3>
+                        </div>
+
+                        <div class="session-progress-number">
+                            <strong id="sessionProgressPercent">0%</strong>
+                            <span>COMPLETE</span>
+                        </div>
+                    </div>
+
+                    <div class="session-progress-track"><span id="sessionProgressBar"></span></div>
+
+                    <div class="cleaning-session-workspace">
+
+                        <div class="cleaning-checklist-column">
+                            <div class="cleaning-task-reaction" id="cleaningTaskReaction" aria-live="polite" aria-atomic="true"></div>
+                            <div class="cleaning-celebration-layer" id="cleaningCelebrationLayer" aria-hidden="true"></div>
+                            <div class="cleaning-task-list" id="cleaningTaskList"></div>
+
+                            <div class="manual-task-panel">
+                                <div>
+                                    <span class="ui-kicker">SOMETHING ELSE?</span>
+                                    <strong>Add it to this clean.</strong>
+                                </div>
+
+                                <div class="manual-task-form">
+                                    <input class="app-input" id="manualCleaningTask" type="text" placeholder="Example: Organize dresser drawer">
+                                    <button class="button button-secondary" id="addManualCleaningTask" type="button">+ Add Task</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <aside class="cleaning-companion-panel" id="cleaningCompanionPanel" data-stage="ready" aria-label="Lumi Cleaning progress companion">
+                            <div class="cleaning-companion-heading">
+                                <div>
+                                    <span class="ui-kicker">CLEANING COMPANION</span>
+                                    <strong>LUMI</strong>
+                                </div>
+                                <span class="cleaning-companion-live"><i></i><span id="cleaningCompanionLiveText">TRACKING</span></span>
+                            </div>
+
+                            <div class="cleaning-companion-stage">
+                                <div class="cleaning-companion-orbit" aria-hidden="true">
+                                    <span></span><span></span><span></span>
+                                </div>
+
+                                <div class="cleaning-companion-ring" id="cleaningCompanionRing" role="img" aria-label="0% of this clean complete">
+                                    <div class="lumi-bot" aria-hidden="true">
+                                        <div class="lumi-antenna"><i></i><b></b></div>
+                                        <div class="lumi-shell">
+                                            <i class="lumi-ear lumi-ear-left"></i>
+                                            <i class="lumi-ear lumi-ear-right"></i>
+
+                                            <div class="lumi-head">
+                                                <div class="lumi-face">
+                                                    <i class="lumi-eye lumi-eye-left"></i>
+                                                    <i class="lumi-eye lumi-eye-right"></i>
+                                                    <i class="lumi-cheek lumi-cheek-left"></i>
+                                                    <i class="lumi-cheek lumi-cheek-right"></i>
+                                                    <i class="lumi-mouth"></i>
+                                                    <span class="lumi-face-glint"></span>
+                                                </div>
+                                            </div>
+
+                                            <div class="lumi-neck"></div>
+
+                                            <div class="lumi-body">
+                                                <span class="lumi-body-mark">L</span>
+                                                <i class="lumi-core"><span></span></i>
+                                            </div>
+
+                                            <i class="lumi-side lumi-side-left"><span></span></i>
+                                            <i class="lumi-side lumi-side-right"><span></span></i>
+                                        </div>
+                                        <span class="lumi-shadow"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="cleaning-companion-progress">
+                                <strong id="cleaningCompanionPercent">0%</strong>
+                                <span id="cleaningCompanionCount">0 / 0 TASKS</span>
+                            </div>
+
+                            <div class="cleaning-companion-milestones" aria-hidden="true">
+                                <i data-lumi-milestone="25"></i>
+                                <i data-lumi-milestone="50"></i>
+                                <i data-lumi-milestone="75"></i>
+                                <i data-lumi-milestone="100"></i>
+                            </div>
+
+                            <div class="cleaning-companion-copy">
+                                <span id="cleaningCompanionEyebrow">READY WHEN YOU ARE</span>
+                                <strong id="cleaningCompanionRoom">Current space</strong>
+                                <p id="cleaningCompanionMessage" aria-live="polite">Check off the first task and Lumi will track the room with you.</p>
+                            </div>
+                        </aside>
+
+                    </div>
+
+                    <div class="cleaning-session-footer">
+                        <p class="cleaning-auto-save-note">
+                            <span aria-hidden="true">●</span>
+                            Every checkoff saves automatically. Finish the checklist and HomeOS closes the clean for you.
+                        </p>
+                        <button class="button button-secondary" id="pauseCleaningButton" type="button">Save + Close</button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             06 // RECURRING HOME CARE
+             Compact by default. Only attention items surface first.
+        ====================================================== -->
+
+        <section class="routine-care-section care-rhythm-compact">
+
+            <details class="care-rhythm-disclosure" id="routineCareDisclosure">
+                <summary>
+                    <span class="care-rhythm-summary-copy">
+                        <small>RECURRING HOME CARE</small>
+                        <strong>Home upkeep</strong>
+                    </span>
+
+                    <span class="care-rhythm-summary-status">
+                        <strong id="routineCareDueCount">0 need attention</strong>
+                        <small>Every 2 weeks + monthly</small>
+                        <span class="care-rhythm-chevron" aria-hidden="true">⌄</span>
+                    </span>
+                </summary>
+
+                <div class="care-rhythm-body">
+                    <p id="routineCareStatusText">
+                        HomeOS watches the repeating upkeep created from Home Setup.
+                    </p>
+
+                    <div class="care-rhythm-reaction" id="routineCareReaction" aria-live="polite"></div>
+
+                    <div class="care-rhythm-attention" id="routineCareAttentionList"></div>
+
+                    <details class="care-rhythm-manage">
+                        <summary>
+                            <span>Manage all recurring care</span>
+                            <strong id="routineCareTrackedCount">0 tracked</strong>
+                        </summary>
+                        <div class="care-rhythm-list" id="routineCareUnifiedList"></div>
+                    </details>
+                </div>
+            </details>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- Shared footer + toast -->
+    <footer id="appFooter"></footer>
+
+    <div
+        class="app-toast"
+        id="appToast"
+        aria-live="polite"
+    ></div>
+
+
+    <!-- =========================================================
+         SHARED HOMEOS FOUNDATION
+    ========================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/supabase-client.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    <script src="assets/js/core/session.js"></script>
+    <script src="assets/js/core/permissions.js"></script>
+
+    <script src="assets/js/components/shell.js"></script>
+
+    <script src="assets/js/services/task-service.js"></script>
+    <script src="assets/js/services/cleaning-service.js"></script>
+
+    <!-- Cleaning feature modules -->
+    <script src="assets/js/pages/cleaning/cleaning-core.js"></script>
+    <script src="assets/js/pages/cleaning/cleaning-render.js"></script>
+    <script src="assets/js/pages/cleaning/cleaning-care.js"></script>
+    <script src="assets/js/pages/cleaning/cleaning-session.js"></script>
+    <script src="assets/js/pages/cleaning/cleaning-events.js"></script>
+    <script src="assets/js/pages/cleaning/cleaning-helpers.js"></script>
+    <script src="assets/js/pages/cleaning/cleaning-companion.js"></script>
+
+    <script src="assets/js/pages/cleaning.js"></script>
+
+</body>
+</html>
